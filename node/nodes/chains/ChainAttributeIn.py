@@ -121,7 +121,7 @@ class ChainAttributeIn(BoneNode):
             if self.outputs[i]==socket:
                 return data["customInpGet"](i-3)
         
-        raise Exception("wat")
+        raise Exception("wat?")
     
     def draw_buttons(self, context, layout):
         op=layout.operator("rigpp.add_node_custom_input")
