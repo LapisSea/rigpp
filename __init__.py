@@ -11,9 +11,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from . rigpp_panel import RigPP_PT_Panel
-from . bclean_op import RigPP_OT_BClean
-
 import bpy
 
 from . import auto_load
@@ -73,11 +70,3 @@ def unregister():
     
     from .node import dereg
     dereg()
-
-# classes = (
-#     RigPP_OT_BClean,
-#     Test_PT_Panel
-# )
-
-
-# register, unregister = bpy.utils.register_classes_factory(classes)

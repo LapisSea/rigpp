@@ -332,48 +332,6 @@ def newMeshObject(name,collection,verts=[],edges=[],faces=[]):
     return obj
 
 
-from . bone_shapes import *
-
-def standardBoneGroups(armature):
-    
-    class StdGroups():
-        def __init__(self, armature):
-             self.__armature=armature
-        
-        def __get(self,name,num,shapeGetter, bone):
-            pose=self.__armature.pose
-            g=pose.bone_groups
-            gr=None
-            
-            if name in g:
-                gr=g[name]
-            else:
-                gr=g.new(name=name)
-                gr.color_set="THEME"+num
-            
-            if bone is not None:
-                bone.bone_group=gr
-                bone.custom_shape=None if shapeGetter is None else shapeGetter()
-            
-            return gr
-            
-        def ik(self, bone=None):
-            self.__get("IK","02", getIKShape, bone)
-        def fk(self, bone=None):
-            return self.__get("FK","04",getFKShape, bone)
-        def mech(self, bone=None):
-            return self.__get("Mech","13",None, bone)
-        def deform(self, bone=None):
-            return self.__get("Deform","03",None, bone)
-        def ctrl(self, bone=None):
-            return self.__get("Ctrl","10",getCtrlShape, bone)
-        def ctrlP(self, bone=None):
-            return self.__get("Ctrl.p","13",getCtrlPShape, bone)
-        def tweak(self, bone=None):
-            return self.__get("Tweak","01",getTweakShape, bone)
-    
-    return StdGroups(armature)
-
 def boneLayerWhitelist(*indices):
     layers=[]
     for i in range(32):
