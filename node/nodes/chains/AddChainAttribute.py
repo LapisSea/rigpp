@@ -8,7 +8,7 @@ from ....import_properties import *
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import (valChange, updateTrees)
 
-noAttr=("0","- No attribute -","")
+noAttr=[("0","- No attribute -","")]
 
 class AddChainAttribute(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -31,7 +31,7 @@ class AddChainAttribute(BoneNode):
             nodes=tree.nodesByType("ChainAttributeIn")
             
             if not nodes:
-                return [noAttr]
+                return noAttr
             
             result=[(str(attr.id),attr.attrName,"") for attr in nodes]
             
@@ -40,7 +40,7 @@ class AddChainAttribute(BoneNode):
         
         tree=self.getTree()
         if not tree:
-            return [noAttr]
+            return noAttr
         
         attributes=tree.get_cached("AttributeIns", generate)
         
@@ -85,9 +85,9 @@ class AddChainAttribute(BoneNode):
             if self.attribute!=s:
                 self.attribute=s
         except:
-            val=self.getAttributes()[0][0]
-            self.attributeId=int(val)
-            self.attribute=val
+            attrs=self.getAttributes()
+            if attrs!=noAttr:
+                self.attribute=attrs[0][0]
             
     def update(self):
         

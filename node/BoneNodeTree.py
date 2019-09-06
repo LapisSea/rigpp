@@ -124,6 +124,10 @@ class BoneNodeTree(NodeTree):
         if hasattr(self,"node_cache"):
             del self.node_cache
         
+        if self.name not in bpy.data.node_groups:
+            print("DEB: Tree "+self.name+" not in bpy.data.node_groups, refusing to update")
+            return
+        
         self.validateLinks()
         
         for n in reversed(self.nodes):
