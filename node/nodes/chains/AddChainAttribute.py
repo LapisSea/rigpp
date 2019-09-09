@@ -61,15 +61,15 @@ class AddChainAttribute(BoneNode):
         for i in range(len(inputs)):
             cIn=inputs[i]
             if len(self.inputs)-1<=i:
-                self.inputs.new(cIn.type,cIn.name)
+                self.inputs.new(cIn.sockType,cIn.name)
                 continue
             
             
             sock=self.inputs[i+1]
             
-            if sock.bl_idname!=cIn.type:
+            if sock.bl_idname!=cIn.sockType:
                 self.inputs.remove(sock)
-                self.syncCustomInputs()
+                self.syncCustomInputs(inputs)
                 return
                 
             if sock.name!=cIn.name:
@@ -152,3 +152,4 @@ class AddChainAttribute(BoneNode):
         if self.hide:
             return self.getAttrName()
         return self.bl_label
+        

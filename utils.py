@@ -616,3 +616,62 @@ def execNode(node, context, data):
         link=node.links[0]
         return link.from_node.execute(context, link.from_socket, data)
     return node.execute(context, data)
+
+import queue
+from threading import Lock
+
+runQueue = queue.Queue()
+runMap = {}
+__runmaplock = Lock()
+
+depsgraphList =[]
+
+def runLater(fun,key=None):
+    if key!=None:
+        __runmaplock.acquire()
+        if key not in runMap:
+            runMap[key]=fun
+        __runmaplock.release()
+    else:
+        runQueue.put((fun,key))
+
+def queuedRun():
+    
+    if runMap:
+        __runmaplock.acquire()
+        for fun in runMap.values():
+            fun()
+        runMap.clear()
+        __runmaplock.release()
+    
+    while not runQueue.empty():
+        fun=runQueue.get()
+        try:
+            fun()
+        except:
+            pass
+    return 1/60.0
+
+
+def onDepsgraph(fun):
+    depsgraphList.append(fun)
+
+def depsgraphRun(ctx):
+    for fun in depsgraphList:
+        fun(ctx)
+    
+def reg():
+    bpy.app.handlers.depsgraph_update_post.append(depsgraphRun)
+    bpy.app.timers.register(queuedRun)
+    
+def dereg():
+    try:
+        bpy.app.handlers.depsgraph_update_post.remove(depsgraphRun)
+    except:
+        pass
+    depsgraphList.clear()
+    
+    try:
+        bpy.app.timers.unregister(queuedRun)
+    except:
+        pass

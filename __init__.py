@@ -17,6 +17,7 @@ from . bclean_op import RigPP_OT_BClean
 import bpy
 
 from . import auto_load
+
 from bpy.types import (Panel,
                        Operator,
                        AddonPreferences,
@@ -52,6 +53,7 @@ class RigppSettings(PropertyGroup):
 
 auto_load.init()
 
+
 def register():
     auto_load.register()
     try:
@@ -61,18 +63,25 @@ def register():
     
     Scene.rigpp_settings = PointerProperty(type=RigppSettings)
     
-    from .node import reg
+    if True:
+        from .node import reg
+        reg()
+    
+    from .utils import reg
     reg()
-    
-    
 
 
 def unregister():
     auto_load.unregister()
     del Scene.rigpp_settings
     
-    from .node import dereg
+    if True:
+        from .node import dereg
+        dereg()
+    
+    from .utils import dereg
     dereg()
+    
 
 # classes = (
 #     RigPP_OT_BClean,

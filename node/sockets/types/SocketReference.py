@@ -28,5 +28,5 @@ for f in listdir(mypath):
         addType(f[:-3])
 
 class SocketReference(PropertyGroup):
-    type: EnumProperty(name="Type", items=types,update=updateTrees)
+    sockType: EnumProperty(name="Type", items=types,update=updateTrees)
     name: StringProperty(name="value", update=updateTrees)

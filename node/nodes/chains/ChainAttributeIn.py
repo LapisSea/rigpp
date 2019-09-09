@@ -19,10 +19,7 @@ class ChainAttributeIn(BoneNode):
     def getTree(self):
         if not self.treeRef:
             return None
-        try:
-            return bpy.data.node_groups[self.treeRef]
-        except:
-            return None
+        return bpy.data.node_groups[self.treeRef]
     
     def nameChange(self,ctx):
         updateTrees()
@@ -92,19 +89,21 @@ class ChainAttributeIn(BoneNode):
         for i in range(len(self.customInputs)):
             cIn=self.customInputs[i]
             if len(self.outputs)-3<=i:
-                self.outputs.new(cIn.type, cIn.name)
+                self.outputs.new(cIn.sockType, cIn.name)
                 continue
             
             out=self.outputs[i+3]
             
-            if out.bl_idname!=cIn.type:
+            if out.bl_idname!=cIn.sockType:
                 self.outputs.remove(out)
                 self.update()
-                return
+                continue
                 
             if out.name!=cIn.name:
                 out.name=cIn.name
         
+        while len(self.customInputs)+3<len(self.outputs):
+            self.outputs.remove(self.outputs[-1])
     
     def execute(self,context, socket, data):
         
@@ -124,9 +123,16 @@ class ChainAttributeIn(BoneNode):
         raise Exception("wat?")
     
     def draw_buttons(self, context, layout):
-        op=layout.operator("rigpp.add_node_custom_input")
-        op.treeRef=self.treeRef
-        op.caller=self.name
+        
+        from ....modify_node_custom_input import actions
+        
+        btns=layout.column_flow(columns=len(actions),align=True)
+        
+        for action in actions:
+            op=btns.operator(action.bl_idname)
+            op.treeRef=self.treeRef
+            op.caller=self.name
+        
         
         layout.prop(self, 'attrName', text="")
     

@@ -1,11 +1,23 @@
 import bpy
 from bpy.types import NodeTree
-from ..utils import makeId
+from ..utils import (makeId, runLater,onDepsgraph)
 from mathutils import Vector
 
 from ..import_properties import *
 
+def onChange(ctx):
+    # def ay():
+    #     valChange(None,ctx)
+    
+    # runLater(ay,"BoneNodeTree_onChange")
+    
+    # print("onChange")
+    return
+    
+onDepsgraph(onChange)
+
 TREE_ID=makeId("bone_node_tree")
+
 
 def valChange(self,ctx):
     for g in bpy.data.node_groups:
@@ -26,6 +38,7 @@ class BoneNodeTree(NodeTree):
     
     uid: IntProperty(default=1)
     autoExecute: BoolProperty(name="Auto execute", default=True)
+    
     
     def newUID(self):
         u=self.uid
@@ -121,6 +134,7 @@ class BoneNodeTree(NodeTree):
                         
     
     def update(self):
+        
         if hasattr(self,"node_cache"):
             del self.node_cache
         
@@ -141,10 +155,6 @@ class BoneNodeTree(NodeTree):
         
         self.autoExec()
     
-    def autoExec(self):
-        if self.autoExecute:
-            bpy.ops.rigpp.execute_bone_tree(treeRef=self.name)
-    
     def get_cached(self,name, generator):
         caches=None
         if hasattr(self,"node_cache"):
@@ -164,24 +174,38 @@ class BoneNodeTree(NodeTree):
         caches[name]=cached
         return cached
     
+    
+    def autoExec(self):
+        if self.autoExecute:
+            bpy.ops.rigpp.execute_bone_tree(treeRef=self.name)
+        
     def execute(self,context):
-        # print("Executing")
         
-        startCandidates=self.nodes
+        if getattr(self,"execute_flag",False):
+            return
         
-        for node in startCandidates:
-            canBe=hasattr(node,"isTerminator") and node.isTerminator()
+        self.execute_flag=True
+        
+        try:
             
-            if canBe:
-                for sock in node.outputs:
-                    if sock.is_linked:
-                        canBe=False
-                        break
+            startCandidates=self.nodes
             
-            if canBe:
-                node.execute(context,node.outputs[0], {
-                    "tree":self,
-                    "run_cache":{}
-                })
+            for node in startCandidates:
+                canBe=hasattr(node,"isTerminator") and node.isTerminator()
+                
+                if canBe:
+                    for sock in node.outputs:
+                        if sock.is_linked:
+                            canBe=False
+                            break
+                
+                if canBe:
+                    node.execute(context,node.outputs[0], {
+                        "tree":self,
+                        "run_cache":{}
+                    })
+                    
+        finally:
+            self.execute_flag=False
         
         

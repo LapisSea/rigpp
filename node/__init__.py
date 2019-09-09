@@ -64,7 +64,16 @@ for category in listdir(mypath):
 
 def reg():
     for cl in classes:
+        
+        try:
+            bpy.utils.unregister_class(cl)
+            classes.remove(cl)
+            print("Already registered:", cl)
+        except:
+            pass
+        
         bpy.utils.register_class(cl)
+        
 
     nodeitems_utils.register_node_categories("RIGPP_NODES", node_categories)
 
@@ -73,4 +82,7 @@ def dereg():
     nodeitems_utils.unregister_node_categories("RIGPP_NODES")
 
     for cl in classes:
-        bpy.utils.unregister_class(cl)
+        try:
+            bpy.utils.unregister_class(cl)
+        except:
+            print("Failed to unregister", cl)
