@@ -28,3 +28,9 @@ class GetArmature(BoneNode):
     
     def execute(self,context, socket, data):
         return self.value
+    
+    def draw_label(self):
+        if self.hide and self.value:
+            return self.value.name
+        else:
+            return self.bl_label

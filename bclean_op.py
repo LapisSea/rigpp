@@ -16,8 +16,10 @@ class RigPP_OT_BClean(bpy.types.Operator):
         count = 0
         for obj in getArmatures(context):
             armature: bpy.types.Armature = obj.data
-
-            for bone in armature.bones:
+            
+            bones=armature.edit_bones if context.mode=="EDIT_ARMATURE" else armature.bones
+            
+            for bone in bones:
                 name: str = bone.name
                 oldName = bone.name
 
@@ -29,21 +31,31 @@ class RigPP_OT_BClean(bpy.types.Operator):
                 change = True
                 while change:
                     change = False
-
+                    
+                    
                     pos = -1
-                    for i in range(1, len(segments)):
-                        if isDirection(segments[i]):
-                            pos = i
-                            break
+                    for pos in range(1, len(segments)):
+                        if isDirection(segments[pos]):
+                            
+                            s = segments[pos-1]
+                            if s.isnumeric() and s.startswith("0"):
+                                segments.pop(pos-1)
+                                change = True
+                                break
+                            
+                            if pos+1<len(segments):
+                                s = segments[pos+1]
+                                
+                                if s.isnumeric() and s.startswith("0"):
+                                    segments.pop(pos+1)
+                                    change = True
+                                    break
 
-                    s = segments[pos-1]
-                    if pos != -1 and s.isnumeric() and s.startswith("0"):
-                        segments.pop(pos-1)
-                        change = True
 
                 name = ".".join(segments)
-
-                if name != oldName:
+                
+                if name != oldName and name not in bones:
+                    print(name, oldName)
                     bone.name = name
                     count += 1
 

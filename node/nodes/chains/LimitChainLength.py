@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -23,7 +23,7 @@ class LimitChainLength(BoneNode):
         self.internal_links.new(cin,cout)
     
     def execute(self,context, socket, data):
-        chains=execNode(self.inputs[0], context, data)
-        length=execNode(self.inputs[1], context, data)
+        chains=execSocket(self.inputs[0], context, data)
+        length=execSocket(self.inputs[1], context, data)
         
         return [c for c in chains if len(c.base)>=length]

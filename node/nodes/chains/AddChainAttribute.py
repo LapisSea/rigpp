@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -133,7 +133,7 @@ class AddChainAttribute(BoneNode):
             layout.prop(self,"attribute", text="")
     
     def execute(self,context, socket, data):
-        chains=execNode(self.inputs[0], context, data)
+        chains=execSocket(self.inputs[0], context, data)
         
         if self.attribute!=noAttr[0]:
             for chain in chains:

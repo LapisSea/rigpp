@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -27,11 +27,16 @@ class MakeList(BoneNode):
     
     def resize(self,tree):
         
+        if not self.inputs:
+            self.inputs.new("NodeSocketAny", "Any")
+        
         if self.inputs[0].bl_idname=="NodeSocketAny":
             return
         
-        
         for inp in self.inputs:
+            
+            print(inp.bl_idname)
+            
             if inp.bl_idname!="NodeSocketAny" and not inp.links:
                 self.inputs.remove(inp)
         
@@ -108,7 +113,7 @@ class MakeList(BoneNode):
             if not input.is_linked:
                 continue
             
-            res=execNode(input, context, data)
+            res=execSocket(input, context, data)
             
             if isinstance(res, list):
                 for e in res:

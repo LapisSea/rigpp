@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId, makeName, execNode)
+from ....utils import (makeId, makeName, execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -26,13 +26,12 @@ def doANUM(name,value, context):
 
 def doADDP(name,value, context):
     return makeName(name, value)
+
 def doREMP(name,value, context):
     segments=name.split(".")
-    for i in reversed(range(len(segments))):
-        if segments[i]==value:
-            segments.remove(i)
-            break
+    segments.remove(value)
     return ".".join(segments)
+
 def doNEWN(name,value, context):
     return value
 
@@ -72,13 +71,9 @@ class DuplicateArmature(BoneNode):
     
     
     def execute(self,context, socket, data):
-        obj=execNode(self.inputs[0], context, data)
+        obj=execSocket(self.inputs[0], context, data)
         if obj==None:
             return None
-        
-        for arm in bpy.data.armatures:
-            if arm.users == 0 and "auto clean up - rigpp" in arm:
-                bpy.data.armatures.remove(arm)
         
         name=nameDerivators.get(self.nameDerivation)(obj.name, self.nameValue,context)
         copied=None
@@ -97,8 +92,27 @@ class DuplicateArmature(BoneNode):
             copied.name=name
             context.collection.objects.link(copied)
         
-        data=copied.data
+        oldData=copied.data
         copied.data = obj.data.copy()
-        copied.data["auto clean up - rigpp"]=True
+        
+        dataName=copied.name
+        
+        if oldData.users == 0:
+            bpy.data.armatures.remove(oldData)
+        
+        if dataName in bpy.data.armatures:
+            old=bpy.data.armatures[dataName]
+            if old.users == 0:
+                bpy.data.armatures.remove(old)
+        
+        
+        # CLEAN_UP="auto clean up - rigpp"
+        
+        # for arm in bpy.data.armatures:
+        #     if arm.users == 0 and CLEAN_UP in arm:
+        #         bpy.data.armatures.remove(arm)
+        
+        copied.data.name=copied.name
+        # copied.data[CLEAN_UP]=True
         
         return copied

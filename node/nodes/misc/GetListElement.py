@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -58,6 +58,6 @@ class GetListElement(BoneNode):
             layout.label(text="Connect any List")
     
     def execute(self,context, socket, data):
-        list=execNode(self.inputs[0], context, data)
+        list=execSocket(self.inputs[0], context, data)
         
         return list[self.index]

@@ -2,7 +2,7 @@ import bpy
 import os
 
 from .. import BoneNode
-from ...utils import (makeId,execNode)
+from ...utils import (makeId,execSocket)
 from ...import_properties import *
 
 from ..sockets.types.NameFilter import NameFilter
@@ -39,6 +39,6 @@ class ChainAttributeOut(BoneNode):
         self.label=so.attrName
         
     def runGroup(self,context, data):
-        controllers=execNode(self.inputs[1], context, data)
+        controllers=execSocket(self.inputs[1], context, data)
         
         # print("ay",controllers)

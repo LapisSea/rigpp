@@ -22,8 +22,86 @@ class BoneTreePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         tree=self.getTree()
+        
         c = layout.column()
         c.scale_y = 1.6
+        
         execOp = c.operator(makeId("execute_bone_tree"), icon = "PLAY")
         execOp.treeRef=tree.name
+        
         layout.prop(tree, "autoExecute")
+        
+        pickOp = layout.operator(makeId("pick_armature"), icon = "EYEDROPPER")
+        pickOp.treeRef=tree.name
+
+class RigPP_OT_PickArmature(bpy.types.Operator):
+    bl_idname = makeId("pick_armature")
+    bl_label = "Pick selected armature(s)"
+    bl_description = ""
+    bl_options = {"REGISTER",'UNDO'}
+    
+    treeRef: StringProperty()
+    
+    def getTree(self):
+        if not self.treeRef:
+            return None
+        return bpy.data.node_groups[self.treeRef]
+        
+    @classmethod
+    def poll(self, context):
+        for obj in context.selected_objects:
+            if obj.type=="ARMATURE":
+                return True
+        return False
+
+    def execute(self, context):
+        tree=None
+        try:
+            tree=self.getTree()
+        except:
+            return {"FINISHED"}
+            
+        off=0
+        
+        for obj in context.selected_objects:
+            if obj.type!="ARMATURE":
+                continue
+            
+            n=tree.newNode("GetArmature")
+            n.value=obj
+            n.hide=True
+            n.location=tree.view_center
+            n.location[0]-=n.width/2
+            n.location[1]+=off
+            off+=n.height
+        
+        return {"FINISHED"}
+
+
+class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
+    bl_idname = "rigpp.execute_bone_tree"
+    bl_label = "EXECUTE"
+    bl_description = ""
+    bl_options = {"REGISTER",'UNDO'}
+    
+    treeRef: StringProperty()
+    
+    def getTree(self):
+        if not self.treeRef:
+            return None
+        return bpy.data.node_groups[self.treeRef]
+        
+    @classmethod
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        tree=None
+        try:
+            tree=self.getTree()
+        except:
+            return {"FINISHED"}
+            
+        
+        tree.execute(context)
+        return {"FINISHED"}

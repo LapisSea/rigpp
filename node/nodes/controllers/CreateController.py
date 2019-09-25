@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 from ....utils import (makeName,objModeSession,boneLayerWhitelist)
 
@@ -28,8 +28,8 @@ class CreateController(BoneNode):
         layout.prop(self, "ctrlName", text="")
         
     def execute(self,context, socket, data):
-        group=execNode(self.inputs[0], context, data)
-        layer=execNode(self.inputs[1], context, data)
+        group=execSocket(self.inputs[0], context, data)
+        layer=execSocket(self.inputs[1], context, data)
         
         
         base=data["chain"].base

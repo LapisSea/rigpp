@@ -67,10 +67,11 @@ def reg():
         
         try:
             bpy.utils.unregister_class(cl)
-            classes.remove(cl)
+            bpy.utils.register_class(cl)
             print("Already registered:", cl)
+            continue
         except:
-            pass
+            ...
         
         bpy.utils.register_class(cl)
         

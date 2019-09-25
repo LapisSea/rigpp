@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -23,10 +23,10 @@ class ResolveChains(BoneNode):
     
     def execute(self,context, socket, data):
         
-        armature=execNode(self.inputs[0], context, data)
+        armature=execSocket(self.inputs[0], context, data)
         if not armature:return armature
         
-        chains=execNode(self.inputs[1], context, data)
+        chains=execSocket(self.inputs[1], context, data)
         if not chains:return armature
             
         tree=data["tree"]
@@ -58,7 +58,7 @@ class ResolveChains(BoneNode):
                 
                 def getIn(pos):
                     if cache[pos]==None:
-                        cache[pos]=execNode(attrNode.inputs[pos+1], context, data)
+                        cache[pos]=execSocket(attrNode.inputs[pos+1], context, data)
                     
                     return cache[pos]
                 

@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -15,7 +15,7 @@ def growParents(chains,useStart,useEnd, careForConnected):
             while True:
                 b=chain.base[0]
                 
-                if careForConnected and b.use_connect:
+                if careForConnected and not b.use_connect:
                     break
                 p=b.parent
                 if not p:
@@ -84,7 +84,7 @@ class ModifyChain(BoneNode):
             layout.prop(self, "length")
     
     def execute(self,context, socket, data):
-        chains=execNode(self.inputs[0], context, data)
+        chains=execSocket(self.inputs[0], context, data)
         
         m=modifiers.get(self.modType)(chains, self.start, self.end, self.length)
         

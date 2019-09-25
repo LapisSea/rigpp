@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execNode)
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -19,7 +19,7 @@ class GetBones(BoneNode):
     
     
     def execute(self,context, socket, data):
-        obj=execNode(self.inputs[0], context, data)
+        obj=execSocket(self.inputs[0], context, data)
         if obj==None:
             return []
         

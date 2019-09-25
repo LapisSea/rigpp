@@ -39,7 +39,6 @@ class BoneNodeTree(NodeTree):
     uid: IntProperty(default=1)
     autoExecute: BoolProperty(name="Auto execute", default=True)
     
-    
     def newUID(self):
         u=self.uid
         self.uid+=1
@@ -135,6 +134,7 @@ class BoneNodeTree(NodeTree):
     
     def update(self):
         
+        
         if hasattr(self,"node_cache"):
             del self.node_cache
         
@@ -186,7 +186,20 @@ class BoneNodeTree(NodeTree):
         
         self.execute_flag=True
         
+        # import traceback
+        
+        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        # traceback.print_stack()
+        
+        bpy.ops.node.select_all(action='DESELECT')
+        
         try:
+            data={
+                "tree":self,
+                "run_cache":dict()
+            }
             
             startCandidates=self.nodes
             
@@ -200,10 +213,7 @@ class BoneNodeTree(NodeTree):
                             break
                 
                 if canBe:
-                    node.execute(context,node.outputs[0], {
-                        "tree":self,
-                        "run_cache":{}
-                    })
+                    node.execute(context,node.outputs[0] if node.outputs else None, data)
                     
         finally:
             self.execute_flag=False

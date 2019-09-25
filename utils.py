@@ -577,10 +577,16 @@ def objModeSession(context,obj,mode,session, *more):
     oldActive=context.view_layer.objects.active
     oldMode=context.mode
     
-    
     def do(m,s):
         bpy.ops.object.mode_set(mode=m, toggle=False)
         return s(obj)
+        
+    diffOb=context.view_layer.objects.active != obj
+    
+    if diffOb and oldActive and oldMode!="OBJECT":
+        bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
+    
+    bpy.ops.object.select_all(action='DESELECT')
     
     context.view_layer.objects.active = obj
     
@@ -596,26 +602,51 @@ def objModeSession(context,obj,mode,session, *more):
                 oldMode=valid
                 break
     
-    bpy.ops.object.mode_set(mode=oldMode, toggle=False)
+    if diffOb:
+        bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
+    if oldActive:
+        oldActive.select_set(state=True)
+        context.view_layer.objects.active = oldActive
+        bpy.ops.object.mode_set(mode=oldMode, toggle=False)
     
-    context.view_layer.objects.active = oldActive
     
     
     return result
 
-def execNode(node, context, data):
-    if node.bl_idname=="NodeSocketInt" or node.bl_idname=="NodeSocketFloat":
-        
-        if node.is_output:
-            return node.node.execute(context, node, data)
-        
-        links=node.links
-        if not links:
-            return node.default_value
+def execSocket(socket, context, data):
+    
+    
+    def compute():
+        if socket.bl_idname=="NodeSocketInt" or socket.bl_idname=="NodeSocketFloat":
             
-        link=node.links[0]
-        return link.from_node.execute(context, link.from_socket, data)
-    return node.execute(context, data)
+            if socket.is_output:
+                return socket.node.execute(context, node, data)
+            
+            links=socket.links
+            if not links:
+                return socket.default_value
+                
+            link=socket.links[0]
+            return link.from_node.execute(context, link.from_socket, data)
+        return socket.execute(context, data)
+    
+    node=socket.node
+    
+    cache=data["run_cache"]
+    
+    if node.name in cache:
+        sockets=cache[node.name]
+        if socket.identifier in sockets:
+            return sockets[socket.identifier]
+    
+    result=compute()
+    node.select=True
+    sockets=dict()
+    sockets[socket.identifier]=result
+    cache[node.name]=sockets
+    
+    
+    return result
 
 import queue
 from threading import Lock
@@ -675,3 +706,51 @@ def dereg():
         bpy.app.timers.unregister(queuedRun)
     except:
         pass
+
+def wrap(width, text):
+    
+    lines = []
+    
+    line=""
+    
+    block=""
+    
+    for c in text:
+        
+        if c=="\n":
+            line+=block
+            lines.append(line)
+            
+            line=""
+            block=""
+            continue
+        
+        if len(block)>0:
+            if block[-1].isspace():
+                if c.isspace():
+                    if len(line)+len(block)>width:
+                        lines.append(line)
+                        line=""
+                    block+=c
+                    continue
+                else:
+                    line+=block
+                    block=c
+                    continue
+        
+        if len(line)>0 and len(line)+len(block)>width:
+            lines.append(line)
+            line=""
+        block+=c
+        
+    
+    if len(block)>0:
+        if len(line)>0 and len(line)+len(block)>width:
+            lines.append(line)
+            line=""
+        line+=block
+    
+    if len(line)>0:
+        lines.append(line)
+    
+    return lines
