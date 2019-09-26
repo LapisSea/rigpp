@@ -60,33 +60,21 @@ class BoneFilter(BoneNode):
     
     def execute(self,context, socket, data):
         
-        def socketByMatch(match):
-            b1=1
-            if check(b[0]):
-                b1=0
-            return self.outputs[b1].identifier
-        
         match=socket==self.outputs[0]
-        caches=data["run_cache"]["outputs"]
         
-        if self.name not in caches:
-            
-            def check(name):
-                for f in self.filters:
-                    if not f.filter(name):
-                        return False
-                return True
-            
-            bones=execSocket(self.inputs[0], context, data)
-            cache={
-                self.outputs[0].identifier:list(),
-                self.outputs[1].identifier:list()
-            }
-            caches[self.name]=cache
-            
-            
-            for b in bones:
-                cache[socketByMatch(check(b[0]))].append(b)
-            
+        def check(name):
+            for f in self.filters:
+                if not f.filter(name):
+                    return False
+            return True
         
-        return caches[self.name][socketByMatch(match)]
+        bones=execSocket(self.inputs[0], context, data)
+        
+        result=[]
+        
+        for b in bones:
+            if check(b[0])==match:
+                result.append(b)
+        
+        
+        return result
