@@ -144,15 +144,6 @@ class BoneNodeTree(NodeTree):
         
         self.validateLinks()
         
-        for n in reversed(self.nodes):
-            if hasattr(n, "treeRef"):
-                n.treeRef=self.name
-            
-            if hasattr(n, "update"):
-                n.update()
-            if hasattr(n, "treeUpdate"):
-                n.treeUpdate(self)
-        
         self.autoExec()
     
     def get_cached(self,name, generator):
@@ -177,7 +168,7 @@ class BoneNodeTree(NodeTree):
     
     def autoExec(self):
         if self.autoExecute:
-            bpy.ops.rigpp.execute_bone_tree(treeRef=self.name)
+            bpy.ops.rigpp.execute_bone_tree()
         
     def execute(self,context):
         

@@ -26,13 +26,11 @@ class BoneTreePanel(bpy.types.Panel):
         c = layout.column()
         c.scale_y = 1.6
         
-        execOp = c.operator(makeId("execute_bone_tree"), icon = "PLAY")
-        execOp.treeRef=tree.name
+        c.operator(makeId("execute_bone_tree"), icon = "PLAY")
         
         layout.prop(tree, "autoExecute")
         
-        pickOp = layout.operator(makeId("pick_armature"), icon = "EYEDROPPER")
-        pickOp.treeRef=tree.name
+        layout.operator(makeId("pick_armature"), icon = "EYEDROPPER")
 
 class RigPP_OT_PickArmature(bpy.types.Operator):
     bl_idname = makeId("pick_armature")
@@ -40,13 +38,6 @@ class RigPP_OT_PickArmature(bpy.types.Operator):
     bl_description = ""
     bl_options = {"REGISTER",'UNDO'}
     
-    treeRef: StringProperty()
-    
-    def getTree(self):
-        if not self.treeRef:
-            return None
-        return bpy.data.node_groups[self.treeRef]
-        
     @classmethod
     def poll(self, context):
         for obj in context.selected_objects:
@@ -84,12 +75,9 @@ class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
     bl_description = ""
     bl_options = {"REGISTER",'UNDO'}
     
-    treeRef: StringProperty()
     
     def getTree(self):
-        if not self.treeRef:
-            return None
-        return bpy.data.node_groups[self.treeRef]
+        return bpy.context.space_data.edit_tree
         
     @classmethod
     def poll(self, context):

@@ -45,7 +45,8 @@ class MakeList(BoneNode):
             self.setOutput("NodeSocketAnyList",tree)
     
     
-    def treeUpdate(self,tree):
+    def update(self):
+        tree=self.getTree()
         
         
         for input in self.inputs:

@@ -14,12 +14,6 @@ class ChainAttributeIn(BoneNode):
     bl_label = 'Chain attribute input'
     bl_icon = 'PLUS'
     
-    treeRef: StringProperty()
-    
-    def getTree(self):
-        if not self.treeRef:
-            return None
-        return bpy.data.node_groups[self.treeRef]
     
     def nameChange(self,ctx):
         updateTrees()
@@ -69,7 +63,8 @@ class ChainAttributeIn(BoneNode):
             out.location[0]+=400
             out.label=self.attrName
     
-    def treeUpdate(self,tree):
+    def update(self):
+        tree=self.getTree()
         if self.id==-1:
             self.id=tree.newUID()
         
@@ -130,7 +125,6 @@ class ChainAttributeIn(BoneNode):
         
         for action in actions:
             op=btns.operator(action.bl_idname)
-            op.treeRef=self.treeRef
             op.caller=self.name
         
         

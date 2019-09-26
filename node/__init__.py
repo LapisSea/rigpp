@@ -12,6 +12,12 @@ class BoneNode(Node):
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == TREE_ID
+    
+    @classmethod
+    def getTree(self, context=None):
+        if context==None:
+            context=bpy.context
+        return context.space_data.edit_tree
 
 class BoneNodeCategory(nodeitems_utils.NodeCategory):
     @classmethod

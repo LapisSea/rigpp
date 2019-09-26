@@ -19,7 +19,8 @@ class ChainAttributeOut(BoneNode):
         self.inputs.new('NodeSocketBoneList', "New bones")
         self.inputs.new('NodeSocketControllerList', "Controllers")
     
-    def treeUpdate(self,tree):
+    def update(self):
+        tree=self.getTree()
         if self.id==-1:
             return
         

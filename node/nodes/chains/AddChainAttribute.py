@@ -15,16 +15,6 @@ class AddChainAttribute(BoneNode):
     bl_label = 'Add chain attribute'
     bl_icon = 'PLUS'
     
-    treeRef: StringProperty()
-    
-    def getTree(self):
-        if not self.treeRef:
-            return None
-        try:
-            return bpy.data.node_groups[self.treeRef]
-        except:
-            return None
-    
     def getAttributes(self, context=None):
         
         def generate(tree):
@@ -122,7 +112,6 @@ class AddChainAttribute(BoneNode):
     
     def draw_buttons(self, context, layout):
         op=layout.operator("rigpp.empty_chain_attribute_resolve")
-        op.treeRef=self.treeRef
         op.x=self.location[0]
         op.y=self.location[1]
         op.caller=self.name

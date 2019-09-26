@@ -32,7 +32,8 @@ class GetListElement(BoneNode):
         for sock in socks:
             tree.links.new(new,sock)
     
-    def treeUpdate(self,tree):
+    def update(self):
+        tree=self.getTree()
         if self.inputs[0].bl_idname=="NodeSocketAnyList":
             links=self.inputs[0].links
             if not links:

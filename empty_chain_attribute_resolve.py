@@ -12,15 +12,10 @@ class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
     bl_description = ""
     bl_options = {'UNDO',"INTERNAL"}
     
-    treeRef: StringProperty()
     x:FloatProperty()
     y:FloatProperty()
     
     caller: StringProperty()
-    
-    def getTree(self):
-        return bpy.data.node_groups[self.treeRef]
-    
     
     @classmethod
     def poll(self, context):

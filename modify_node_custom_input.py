@@ -15,14 +15,10 @@ class RigPP_OT_AddNodeCustomInput(bpy.types.Operator):
     bl_description = "Add new custom node input"
     bl_options = {'UNDO',"REGISTER","INTERNAL"}
     
-    treeRef: StringProperty()
     caller: StringProperty()
     doExec: BoolProperty(default=False)
     
     new: PointerProperty(type=SocketReference)
-    
-    def getTree(self):
-        return bpy.data.node_groups[self.treeRef]
     
     @classmethod
     def poll(self, context):
@@ -62,11 +58,10 @@ class RigPP_OT_RemoveNodeCustomInput(bpy.types.Operator):
     bl_description = "Remove new custom node input"
     bl_options = {'UNDO',"REGISTER","INTERNAL"}
     
-    treeRef: StringProperty()
     caller: StringProperty()
     
     def getTree(self):
-        return bpy.data.node_groups[self.treeRef]
+        return bpy.context.space_data.edit_tree
     
     @classmethod
     def poll(self, context):
