@@ -85,7 +85,16 @@ class ModifyChain(BoneNode):
     
     def execute(self,context, socket, data):
         chains=execSocket(self.inputs[0], context, data)
+        if not chains:
+            return []
         
-        m=modifiers.get(self.modType)(chains, self.start, self.end, self.length)
+        arm=chains[0].base[0][1]
         
+        for chain in chains:
+            chain.base=[arm.data.bones[b[0]] for b in chain.base]
+        
+        modifiers.get(self.modType)(chains, self.start, self.end, self.length)
+        
+        for chain in chains:
+            chain.base=[(b.name,arm) for b in chain.base]
         return chains

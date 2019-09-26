@@ -23,4 +23,4 @@ class GetBones(BoneNode):
         if obj==None:
             return []
         
-        return [b for b in obj.data.bones]
+        return [(b.name,obj) for b in obj.data.bones]

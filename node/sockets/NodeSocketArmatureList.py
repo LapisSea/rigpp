@@ -3,6 +3,7 @@ import os
 from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
+from ...utils import execNode
 
 class NodeSocketArmatureList(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
@@ -31,9 +32,9 @@ class NodeSocketArmatureList(NodeSocket):
     
     def execute(self,context, tree):
         if self.is_output:
-            return self.node.execute(context, self, tree)
+            return execNode(self.node,self,context,tree)
         if not self.is_linked:
             return []
             
         link=self.links[0]
-        return link.from_node.execute(context, link.from_socket, tree)
+        return execNode(link.from_node, link.from_socket, context, tree)

@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import NodeTree
-from ..utils import (makeId, runLater,onDepsgraph)
+from ..utils import (makeId, runLater,onDepsgraph,execNode)
 from mathutils import Vector
 
 from ..import_properties import *
@@ -193,12 +193,12 @@ class BoneNodeTree(NodeTree):
         # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         # traceback.print_stack()
         
-        bpy.ops.node.select_all(action='DESELECT')
-        
         try:
             data={
                 "tree":self,
-                "run_cache":dict()
+                "run_cache":{
+                    "outputs":{}
+                }
             }
             
             startCandidates=self.nodes
@@ -213,7 +213,11 @@ class BoneNodeTree(NodeTree):
                             break
                 
                 if canBe:
-                    node.execute(context,node.outputs[0] if node.outputs else None, data)
+                    execNode(
+                        node,
+                        node.outputs[0] if node.outputs else None,
+                        context,
+                        data)
                     
         finally:
             self.execute_flag=False

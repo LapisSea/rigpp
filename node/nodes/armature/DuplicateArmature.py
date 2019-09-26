@@ -77,8 +77,8 @@ class DuplicateArmature(BoneNode):
         
         name=nameDerivators.get(self.nameDerivation)(obj.name, self.nameValue,context)
         copied=None
+        collections=None #context.scene.master_collection
         
-            
         if name in context.scene.objects:
             copied=context.scene.objects[name]
             if self.deleteExisting:
@@ -106,13 +106,12 @@ class DuplicateArmature(BoneNode):
                 bpy.data.armatures.remove(old)
         
         
-        # CLEAN_UP="auto clean up - rigpp"
+        copied.data.name=dataName
         
-        # for arm in bpy.data.armatures:
-        #     if arm.users == 0 and CLEAN_UP in arm:
-        #         bpy.data.armatures.remove(arm)
+        for cols in copied.users_collection:
+            cols.objects.unlink(copied)
         
-        copied.data.name=copied.name
-        # copied.data[CLEAN_UP]=True
+        for cols in obj.users_collection:
+            cols.objects.link(copied)
         
         return copied

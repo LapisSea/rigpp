@@ -581,7 +581,7 @@ def objModeSession(context,obj,mode,session, *more):
         bpy.ops.object.mode_set(mode=m, toggle=False)
         return s(obj)
         
-    diffOb=context.view_layer.objects.active != obj
+    diffOb=oldActive != obj
     
     if diffOb and oldActive and oldMode!="OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
@@ -613,40 +613,45 @@ def objModeSession(context,obj,mode,session, *more):
     
     return result
 
-def execSocket(socket, context, data):
+def execNode(node, socket, context, data):
     
-    
-    def compute():
-        if socket.bl_idname=="NodeSocketInt" or socket.bl_idname=="NodeSocketFloat":
-            
-            if socket.is_output:
-                return socket.node.execute(context, node, data)
-            
-            links=socket.links
-            if not links:
-                return socket.default_value
-                
-            link=socket.links[0]
-            return link.from_node.execute(context, link.from_socket, data)
-        return socket.execute(context, data)
-    
-    node=socket.node
-    
-    cache=data["run_cache"]
+    cache=data["run_cache"]["outputs"]
     
     if node.name in cache:
         sockets=cache[node.name]
+        if socket==None and sockets["__"]:
+            return sockets["__"]
         if socket.identifier in sockets:
             return sockets[socket.identifier]
     
-    result=compute()
-    node.select=True
-    sockets=dict()
-    sockets[socket.identifier]=result
-    cache[node.name]=sockets
     
+    result=node.execute(context, socket, data)
+    
+    sockets=None
+    if node.name in cache:
+        sockets=cache[node.name]
+    else:
+        sockets=dict()
+        cache[node.name]=sockets
+    
+    sockets[socket.identifier if socket!=None else "__"]=result
     
     return result
+    
+def execSocket(socket, context, data):
+    
+    if socket.bl_idname in ("NodeSocketInt","NodeSocketFloat","NodeSocketBool"):
+        
+        if socket.is_output:
+            return socket.node.execute(context, node, data)
+        
+        links=socket.links
+        if not links:
+            return socket.default_value
+            
+        link=socket.links[0]
+        return execNode(link.from_node, link.from_socket, context, tree)
+    return socket.execute(context, data)
 
 import queue
 from threading import Lock
@@ -664,10 +669,9 @@ def runLater(fun,key=None):
             runMap[key]=fun
         __runmaplock.release()
     else:
-        runQueue.put((fun,key))
+        runQueue.put(fun)
 
 def queuedRun():
-    
     if runMap:
         __runmaplock.acquire()
         for fun in runMap.values():
@@ -680,12 +684,16 @@ def queuedRun():
         try:
             fun()
         except:
-            pass
+            import traceback
+            traceback.print_exc()
     return 1/60.0
 
 
 def onDepsgraph(fun):
     depsgraphList.append(fun)
+
+def offDepsgraph(fun):
+    depsgraphList.remove(fun)
 
 def depsgraphRun(ctx):
     for fun in depsgraphList:

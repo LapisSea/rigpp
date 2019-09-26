@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execSocket)
+from ....utils import (makeId,execNode,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
@@ -96,5 +96,13 @@ class MakeChains(BoneNode):
     
     def execute(self,context, socket, data):
         bones=execSocket(self.inputs[0], context, data)
-        chains=constructioneers.get(self.constructionType)([b for b in bones])
+        if not bones:
+            return []
+        
+        chains=constructioneers.get(self.constructionType)([b[1].data.bones[b[0]] for b in bones])
+        
+        arm=bones[0][1]
+        for chain in chains:
+            chain.base=[(b.name,arm) for b in chain.base]
+        
         return chains

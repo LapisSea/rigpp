@@ -3,6 +3,7 @@ import os
 from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
+from ...utils import execNode
 
 
 class NodeSocketControllerList(NodeSocket):
@@ -18,11 +19,11 @@ class NodeSocketControllerList(NodeSocket):
     
     def execute(self,context, tree):
         if self.is_output:
-            return self.node.execute(context, self, tree)
+            return execNode(self.node,self,context,tree)
         
         links=self.links
         if not links:
             return []
             
         link=self.links[0]
-        return link.from_node.execute(context, link.from_socket, tree)
+        return execNode(link.from_node, link.from_socket, context, tree)

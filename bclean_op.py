@@ -55,7 +55,6 @@ class RigPP_OT_BClean(bpy.types.Operator):
                 name = ".".join(segments)
                 
                 if name != oldName and name not in bones:
-                    print(name, oldName)
                     bone.name = name
                     count += 1
 

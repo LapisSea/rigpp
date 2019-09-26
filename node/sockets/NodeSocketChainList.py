@@ -3,6 +3,7 @@ import os
 from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
+from ...utils import execNode
 
 class NodeSocketChainList(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
@@ -11,15 +12,8 @@ class NodeSocketChainList(NodeSocket):
     def draw(self, context, layout, node, text):
         layout.label(text=text)
 
-    # Socket color
     def draw_color(self, context, node):
         return (0.1, 0.3, 1, 0.5)
-        
-    # def getCastExplicit(self,target):
-    #     if target.bl_idname=="NodeSocketBoneList":
-    #         return "ResolveChains"
-    #     else:
-    #         return None
     
     def execute(self,context, data):
         if self.is_output:
@@ -28,4 +22,4 @@ class NodeSocketChainList(NodeSocket):
             return []
             
         link=self.links[0]
-        return link.from_node.execute(context, link.from_socket, data)
+        return execNode(link.from_node, link.from_socket, context, data)

@@ -2,7 +2,7 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,objModeSession)
+from ....utils import (makeId,objModeSession,execSocket)
 from ....import_properties import *
 from ...BoneNodeTree import valChange
 
@@ -29,11 +29,7 @@ class MirrorBones(BoneNode):
         self.outputs.new('NodeSocketArmature', "Armature")
     
     def execute(self,context, socket,tree):
-        bones=self.inputs[1].execute(context,tree)
-        boneNames=[b.name for b in bones]
-        
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print(boneNames)
+        bones=execSocket(self.inputs[1], context, tree)
         
         def doMirror(armature):
             eBones=armature.data.edit_bones
@@ -41,8 +37,8 @@ class MirrorBones(BoneNode):
             for eBone in eBones:
                 eBone.select=False
             
-            for bone in boneNames:
-                eb=eBones[bone]
+            for bone in bones:
+                eb=eBones[bone[0]]
                 eb.select=True
                 eb.select_head =True
                 eb.select_tail =True

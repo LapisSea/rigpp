@@ -60,8 +60,14 @@ class BoneFilter(BoneNode):
     
     def execute(self,context, socket, data):
         
+        def socketByMatch(match):
+            b1=1
+            if check(b[0]):
+                b1=0
+            return self.outputs[b1].identifier
+        
         match=socket==self.outputs[0]
-        caches=data["run_cache"]
+        caches=data["run_cache"]["outputs"]
         
         if self.name not in caches:
             
@@ -73,14 +79,14 @@ class BoneFilter(BoneNode):
             
             bones=execSocket(self.inputs[0], context, data)
             cache={
-                True:[],
-                False:[]
+                self.outputs[0].identifier:list(),
+                self.outputs[1].identifier:list()
             }
             caches[self.name]=cache
             
             
             for b in bones:
-                cache[check(b.name)].append(b)
+                cache[socketByMatch(check(b[0]))].append(b)
             
         
-        return caches[self.name][match]
+        return caches[self.name][socketByMatch(match)]

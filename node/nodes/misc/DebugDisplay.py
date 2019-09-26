@@ -23,7 +23,7 @@ class DebugDisplay(BoneNode):
     
     def draw_buttons(self, context, layout): 
         
-        lines=wrap(self.width/7, self.data)
+        lines=wrap(self.width/6, self.data)
         
         if not lines:
             lines.append("<EMPTY>")

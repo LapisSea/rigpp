@@ -35,8 +35,6 @@ class MakeList(BoneNode):
         
         for inp in self.inputs:
             
-            print(inp.bl_idname)
-            
             if inp.bl_idname!="NodeSocketAny" and not inp.links:
                 self.inputs.remove(inp)
         
