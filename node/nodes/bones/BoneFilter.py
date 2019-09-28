@@ -82,5 +82,4 @@ class BoneFilter(BoneNode):
             if check(b[0])==match:
                 result.append(b)
         
-        
         return result
