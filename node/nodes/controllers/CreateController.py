@@ -76,7 +76,7 @@ class CreateController(BoneNode):
                 pb=pbs[name]
                 pb.bone_group=group
         
-        objModeSession(context, data["armature"],
+        objModeSession( data["armature"],
             "EDIT", addBones,
             "POSE", setUpBones
         )

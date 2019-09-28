@@ -74,6 +74,7 @@ class ModifyChain(BoneNode):
     
     def init(self, context):
         self.inputs .new('NodeSocketChainList', "Chains")
+        self.inputs .new('NodeSocketBInt', "Length").setRange(1)
         self.outputs.new('NodeSocketChainList', "Chains")
     
     def draw_buttons(self, context, layout):

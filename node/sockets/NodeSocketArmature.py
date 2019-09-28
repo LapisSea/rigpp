@@ -3,7 +3,7 @@ import os
 from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
-from ...utils import execNode
+from ...utils import (execNode,execSocket)
 
 class NodeSocketArmature(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
@@ -12,8 +12,27 @@ class NodeSocketArmature(NodeSocket):
     value: PointerProperty(type=bpy.types.Object)
 
     def draw(self, context, layout, node, text):
+        
+        def doText():
+            tree=context.space_data.edit_tree
+            
+            if hasattr(tree,"run_cache"):
+                run_cache=tree.run_cache
+                try:
+                    data=run_cache["outputs"][node.name][self.identifier]
+                    if data:
+                        return \
+                        data.name \
+                        if isinstance(data, bpy.types.bpy_struct) and hasattr(data,"name") \
+                        else str(data)
+                except:
+                    pass
+            
+            return text
+        
         if self.is_linked or self.is_output:
-            layout.label(text=text)
+            
+            layout.label(text=doText())
         else:
             if self.value == None:
                 layout.label(text=text)
@@ -38,6 +57,8 @@ class NodeSocketArmature(NodeSocket):
         if self.is_output:
             return execNode(self.node,self,context,data)
         
-        link=self.links[0]
+        links=self.links
+        if not links:
+            return None
         
-        return execNode(link.from_node,link.from_socket,context,data)
+        return execSocket(links[0].from_socket, context,data)

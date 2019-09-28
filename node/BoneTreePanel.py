@@ -69,7 +69,7 @@ class RigPP_OT_PickArmature(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
+class RigPP_OT_ExecuteTree(bpy.types.Operator):
     bl_idname = "rigpp.execute_bone_tree"
     bl_label = "EXECUTE"
     bl_description = ""
@@ -89,7 +89,23 @@ class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
             tree=self.getTree()
         except:
             return {"FINISHED"}
-            
         
         tree.execute(context)
+        return {"FINISHED"}
+
+
+class RigPP_OT_UpdateTree(bpy.types.Operator):
+    bl_idname = "rigpp.update_bone_tree"
+    bl_label = "UPDATE"
+    bl_description = ""
+    bl_options = {"REGISTER",'UNDO'}
+    
+        
+    @classmethod
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        tree=context.space_data.edit_tree
+        tree.update()
         return {"FINISHED"}

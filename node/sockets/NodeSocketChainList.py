@@ -10,7 +10,21 @@ class NodeSocketChainList(NodeSocket):
     bl_label = 'Bone Chain List Node Socket'
     
     def draw(self, context, layout, node, text):
-        layout.label(text=text)
+        def doText():
+            tree=context.space_data.edit_tree
+            
+            if hasattr(tree,"run_cache"):
+                run_cache=tree.run_cache
+                try:
+                    data=run_cache["outputs"][node.name][self.identifier]
+                    if data:
+                        return text + " ("+str(len(data)) + ")"
+                except:
+                    pass
+            
+            return text
+            
+        layout.label(text=doText())
 
     def draw_color(self, context, node):
         return (0.1, 0.3, 1, 0.5)

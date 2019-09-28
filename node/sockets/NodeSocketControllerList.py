@@ -11,7 +11,21 @@ class NodeSocketControllerList(NodeSocket):
     bl_label = 'Controllers List Node Socket'
     
     def draw(self, context, layout, node, text):
-        layout.label(text=text)
+        def doText():
+            tree=context.space_data.edit_tree
+            
+            if hasattr(tree,"run_cache"):
+                run_cache=tree.run_cache
+                try:
+                    data=run_cache["outputs"][node.name][self.identifier]
+                    if data:
+                        return text + " ("+str(len(data)) + ")"
+                except:
+                    pass
+            
+            return text
+            
+        layout.label(text=doText())
 
     # Socket color
     def draw_color(self, context, node):

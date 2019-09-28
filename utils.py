@@ -573,7 +573,9 @@ def makeId(name):
     return ADDON_PREFIX+"."+name
 
 
-def objModeSession(context,obj,mode,session, *more):
+def objModeSession(obj,mode,session, *more):
+    context=bpy.context
+    
     oldActive=context.view_layer.objects.active
     oldMode=context.mode
     
@@ -587,6 +589,7 @@ def objModeSession(context,obj,mode,session, *more):
         bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
     
     bpy.ops.object.select_all(action='DESELECT')
+    
     
     context.view_layer.objects.active = obj
     
@@ -633,24 +636,24 @@ def execNode(node, socket, context, data):
     else:
         sockets=dict()
         cache[node.name]=sockets
-    
+        
     sockets[socket.identifier if socket!=None else "__"]=result
     
     return result
     
 def execSocket(socket, context, data):
     
-    if socket.bl_idname in ("NodeSocketInt","NodeSocketFloat","NodeSocketBool"):
+    # if socket.bl_idname in ("NodeSocketInt","NodeSocketFloat","NodeSocketBool"):
         
-        if socket.is_output:
-            return socket.node.execute(context, node, data)
+    #     if socket.is_output:
+    #         return socket.node.execute(context, node, data)
         
-        links=socket.links
-        if not links:
-            return socket.default_value
+    #     links=socket.links
+    #     if not links:
+    #         return socket.default_value
             
-        link=socket.links[0]
-        return execNode(link.from_node, link.from_socket, context, tree)
+    #     link=socket.links[0]
+    #     return execNode(link.from_node, link.from_socket, context, tree)
     return socket.execute(context, data)
 
 import queue

@@ -42,9 +42,12 @@ def _scrape():
                 
                 attributes.append((k," ".join([s.capitalize() for s in k.split("_")]),""))
                 
+                if typ:
+                    typ="NodeSocketB"+typ.capitalize()
+                
                 attributeTypes[k]=typ
         
-        objModeSession(context, obj, "EDIT", do)
+        objModeSession( obj, "EDIT", do)
         
     finally:
         context.scene.collection.objects.unlink(obj)
@@ -64,7 +67,7 @@ class SetBoneAttribute(BoneNode):
     bl_icon = 'PLUS'
     
     def change(self,ctx):
-        typ="NodeSocket"+attributeTypes[self.attr].capitalize()
+        typ=attributeTypes[self.attr]
         
         if len(self.inputs)<2:
             self.inputs.new(name="Value", type=typ)
@@ -102,6 +105,6 @@ class SetBoneAttribute(BoneNode):
                 setattr(ebs[bone[0]],self.attr,value)
         
         if bones:
-            objModeSession(context,bones[0][1],"EDIT",do)
+            objModeSession(bones[0][1],"EDIT",do)
         
         return bones

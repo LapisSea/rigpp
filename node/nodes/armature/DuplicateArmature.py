@@ -29,7 +29,10 @@ def doADDP(name,value, context):
 
 def doREMP(name,value, context):
     segments=name.split(".")
-    segments.remove(value)
+    try:
+        segments.remove(value)
+    except:
+        pass
     return ".".join(segments)
 
 def doNEWN(name,value, context):

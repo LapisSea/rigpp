@@ -29,7 +29,7 @@ class DebugDisplay(BoneNode):
             lines.append("<EMPTY>")
             
         
-        row=layout.row()
+        row=layout.row(align = True)
         
         for var in lines:
             row = layout.row(align = True)

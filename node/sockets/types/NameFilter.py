@@ -40,4 +40,4 @@ class NameFilter(PropertyGroup):
         return self.value=="" or filters.get(self.type)(name,self.value)
     
     type: EnumProperty(name="type",items=filterTypes, default=filterTypes[0][0], update=updateTrees)
-    value: StringProperty(name="value", update=updateTrees)
+    value: StringProperty(name="value", update=updateTrees, options={"TEXTEDIT_UPDATE"})

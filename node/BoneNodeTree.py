@@ -23,11 +23,9 @@ def valChange(self,ctx):
     for g in bpy.data.node_groups:
         if g.bl_idname == TREE_ID:
             g.autoExec()
-    
-def updateTrees(self=None,ctx=None):
-    for g in bpy.data.node_groups:
-        if g.bl_idname == TREE_ID:
-            g.update()
+
+def updateTrees(self=None,context=None):
+    bpy.ops.rigpp.execute_bone_tree()
 
 class BoneNodeTree(NodeTree):
     
@@ -134,15 +132,46 @@ class BoneNodeTree(NodeTree):
     
     def update(self):
         
-        
-        if hasattr(self,"node_cache"):
-            del self.node_cache
-        
         if self.name not in bpy.data.node_groups:
             print("DEB: Tree "+self.name+" not in bpy.data.node_groups, refusing to update")
             return
         
+        selfAvare=False
+        try:
+            selfAvare=bpy.context.space_data.edit_tree==self
+        except:
+            pass
+        
+        
+        if not selfAvare:
+            
+            def makeContext():
+                for window in bpy.context.window_manager.windows:
+                    for screen in window.workspace.screens:
+                        for area in screen.areas:
+                            for space in area.spaces:
+                                if isinstance(space, bpy.types.SpaceNodeEditor):
+                                    if space.edit_tree==self:
+                                        return {
+                                            'window': window, 
+                                            'screen': screen,
+                                            'area': area, 
+                                            'space': space, 
+                                            'edit_tree': space.edit_tree
+                                        }
+            ctx=makeContext()
+            if ctx:
+                bpy.ops.rigpp.update_bone_tree({**bpy.context.copy(), **ctx})
+                return
+        
+        if hasattr(self,"node_cache"):
+            del self.node_cache
+        
         self.validateLinks()
+        
+        for n in reversed(self.nodes):
+            if hasattr(n, "update"):
+                n.update()
         
         self.autoExec()
     
@@ -167,6 +196,9 @@ class BoneNodeTree(NodeTree):
     
     
     def autoExec(self):
+        if getattr(self,"execute_flag",False):
+            return
+        
         if self.autoExecute:
             bpy.ops.rigpp.execute_bone_tree()
         
@@ -176,6 +208,11 @@ class BoneNodeTree(NodeTree):
             return
         
         self.execute_flag=True
+        if hasattr(self,"run_cache"):
+            del self.run_cache
+        
+        self.update()
+        
         
         # import traceback
         
@@ -209,7 +246,8 @@ class BoneNodeTree(NodeTree):
                         node.outputs[0] if node.outputs else None,
                         context,
                         data)
-                    
+            
+            self.run_cache=data["run_cache"]
         finally:
             self.execute_flag=False
         

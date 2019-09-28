@@ -3,7 +3,7 @@ import os
 from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
-from ...utils import execNode
+from ...utils import (execNode,execSocket)
 
 class NodeSocketAny(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
@@ -19,11 +19,14 @@ class NodeSocketAny(NodeSocket):
     def canCast(self, socket):
         return True
     
-    def execute(self,context, tree):
+    def execute(self,context, data):
         if self.is_output:
-            return execNode(self.node,self,context,tree)
+            return execNode(self.node,self,context,data)
         if not self.is_linked:
             return None
             
-        link=self.links[0]
-        return execNode(link.from_node, link.from_socket, context, tree)
+        links=self.links
+        if not links:
+            return None
+        
+        return execSocket(links[0].from_socket, context,data)

@@ -46,6 +46,6 @@ class MirrorBones(BoneNode):
             
         armature=self.inputs[0].execute(context,tree)
         
-        objModeSession(context,armature,"EDIT", doMirror)
+        objModeSession(armature,"EDIT", doMirror)
         
         return armature

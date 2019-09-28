@@ -19,6 +19,9 @@ class BoneFilter(BoneNode):
     
     def update(self):
         self.resize()
+        
+        # if not self.internal_links:
+        #     self.getTree().links.new(self.inputs[0], self.outputs[0])
     
     def resize(self):
         if len(self.filters)==0 or len(self.filters[-1].value)>0:
@@ -35,6 +38,9 @@ class BoneFilter(BoneNode):
         self.inputs.new("NodeSocketBoneList", "Bones")
         self.outputs.new('NodeSocketBoneList', "Match Bones")
         self.outputs.new('NodeSocketBoneList', "Fail Bones")
+        
+        self.getTree().links.new(self.inputs[0], self.outputs[0])
+        
         self.resize()
     
     def copy(self, node):
