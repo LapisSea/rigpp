@@ -1,23 +1,75 @@
 from .BoneNodeTree import TREE_ID
-from bpy.types import Node
+from bpy.types import Node,NodeSocket
 import nodeitems_utils
-from ..utils import makeId
+from ..utils import (makeId,execNode,execSocket)
 import bpy
 
 import sys
 sys.path.insert(0, '..')
 
 
+class BoneNodeSocket(NodeSocket):
+    bl_label = 'Bone Node Socket'
+    
+    def execute(self,context, data):
+        if self.is_output:
+            return execNode(self.node,self,context,data)
+        
+        links=self.links
+        if not links:
+            return getattr(self,"value",None)
+        
+        return execSocket(links[0].from_socket, context,data)
+
+class BoneNodeSocketList(NodeSocket):
+    bl_label = 'Bone Node Socket'
+    
+    def execute(self,context, data):
+        if self.is_output:
+            return execNode(self.node,self,context,data)
+        
+        links=self.links
+        if not links:
+            return []
+        
+        return execSocket(links[0].from_socket, context,data)
+
 class BoneNode(Node):
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == TREE_ID
     
-    @classmethod
     def getTree(self, context=None):
         if context==None:
             context=bpy.context
         return context.space_data.edit_tree
+    
+    def setIOType(self,sockets,pos,typ):
+        
+        inp=sockets[pos]
+        
+        if inp.bl_idname==typ:
+            return
+        
+        name=inp.name
+        isOut=inp.is_output
+        socks=[e.to_socket if isOut else e.from_socket for e in inp.links]
+        
+        sockets.remove(inp)
+        new=sockets.new(typ,name)
+        
+        p1=len(sockets)-1
+        if p1!=pos:
+            sockets.move(p1,pos)
+        
+        tree=self.getTree()
+        
+        for socket in socks:
+            if isOut:
+                tree.links.new(new, socket)
+            else:
+                tree.links.new(socket,new)
+        
 
 class BoneNodeCategory(nodeitems_utils.NodeCategory):
     @classmethod

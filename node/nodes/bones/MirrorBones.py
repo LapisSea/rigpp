@@ -29,7 +29,6 @@ class MirrorBones(BoneNode):
         self.outputs.new('NodeSocketArmature', "Armature")
     
     def execute(self,context, socket,tree):
-        bones=execSocket(self.inputs[1], context, tree)
         
         def doMirror(armature):
             eBones=armature.data.edit_bones
@@ -43,8 +42,14 @@ class MirrorBones(BoneNode):
                 eb.select_head =True
                 eb.select_tail =True
             bpy.ops.armature.symmetrize(direction=self.direction)
-            
+        
         armature=self.inputs[0].execute(context,tree)
+        if not armature:
+            return None
+        
+        bones=execSocket(self.inputs[1], context, tree)
+        if not bones:
+            return armature
         
         objModeSession(armature,"EDIT", doMirror)
         

@@ -23,41 +23,22 @@ class GetListElement(BoneNode):
     
     wrap:BoolProperty(name="Wrap",default=True, update=change)
     
-    def setOutput(self,type,tree):
-        socks=[link.to_socket for link in self.outputs[0].links]
-        
-        self.outputs.clear()
-        new=self.outputs.new(type[0:-4] if type.endswith("List") else type, "Element")
-        
-        for sock in socks:
-            tree.links.new(new,sock)
-            
-    def setInput(self,type,tree):
-        socks=[link.from_socket for link in self.inputs[0].links]
-        
-        self.inputs.clear()
-        new=self.inputs.new(type, "List")
-        self.inputs.new("NodeSocketBInt", "Index")
-        
-        for sock in socks:
-            tree.links.new(new,sock)
     
     def update(self):
         tree=self.getTree()
-        if self.inputs[0].bl_idname=="NodeSocketAnyList":
-            links=self.inputs[0].links
-            if not links:
-                return
-            
-            socket=links[0].from_socket
-            
-            self.setInput(socket.bl_idname,tree)
-            self.setOutput(socket.bl_idname[0:-4],tree)
-            
+        
+        typ="NodeSocketAnyList"
+        
+        l=self.inputs[0].links
+        if l:
+            typ=l[0].from_socket.bl_idname
         else:
-            if not self.inputs[0].links:
-                self.setInput("NodeSocketAnyList",tree)
-                self.setOutput("NodeSocketAny",tree)
+            l=self.outputs[0].links
+            if l:
+                typ=l[0].to_socket.bl_idname+"List"
+        
+        self.setIOType(self.inputs,0,typ)
+        self.setIOType(self.outputs,0,typ[0:-4])
         
     def init(self, context):
         self.inputs.new("NodeSocketAnyList", "List")

@@ -90,21 +90,23 @@ class SetBoneAttribute(BoneNode):
     def init(self, context):
         _scrape()
         self.inputs.new("NodeSocketBoneList", "Bones")
-        self.inputs.new("NodeSocketAny", "Value")
         self.outputs.new("NodeSocketBoneList", "Bones")
+        self.change(context)
     
     def execute(self,context, socket,data):
         _scrape()
         
         bones=execSocket(self.inputs[0], context, data)
+        if not bones:
+            return []
+        
+        value=execSocket(self.inputs[1], context, data)
         
         def do(armature):
-            value=execSocket(self.inputs[1], context, data)
             ebs=armature.data.edit_bones
             for bone in bones:
                 setattr(ebs[bone[0]],self.attr,value)
         
-        if bones:
-            objModeSession(bones[0][1],"EDIT",do)
+        objModeSession(bones[0][1],"EDIT",do)
         
         return bones

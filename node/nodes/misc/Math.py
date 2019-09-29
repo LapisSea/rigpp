@@ -161,7 +161,7 @@ def doAbs(vals,outTypes):
     return doSingleMathOp(vals[0],outTypes,abs)
 
 def doLog(vals,outTypes):
-    return doSingleMathOp(vals[0],outTypes,math.log)
+    return doSingleMathOp(vals[0],outTypes,lambda l: math.inf if l==0 else math.log(l))
 
 def doMin(vals,outTypes):
     return doLRMathOp(vals[0],vals[1],outTypes[0],min)
@@ -185,7 +185,6 @@ def doLess(vals,outTypes):
     return doLRMathOp(vals[0],vals[1],outTypes[0],lambda l,r:l<r)
 
 def doGret(vals,outTypes):
-    print()
     return doLRMathOp(vals[0],vals[1],outTypes[0],lambda l,r:l>r)
 
 def calcSinTypes(inputs):
@@ -311,7 +310,7 @@ class Math(BoneNode):
                 if sock.name!=name:
                     sock.name=name
                 
-                self.setType(sockets,i,typ)
+                self.setIOType(sockets,i,typ)
             
             while len(sockets)>inpC:
                 inp=sockets[len(sockets)-1]
@@ -361,32 +360,6 @@ class Math(BoneNode):
     def init(self, context):
         self.doIO()
     
-    def setType(self,sockets,pos,typ):
-        
-        inp=sockets[pos]
-        
-        if inp.bl_idname==typ:
-            return
-        
-        name=inp.name
-        isOut=inp.is_output
-        socks=[e.to_socket if isOut else e.from_socket for e in inp.links]
-        
-        sockets.remove(inp)
-        new=sockets.new(typ,name)
-        
-        p1=len(sockets)-1
-        if p1!=pos:
-            sockets.move(p1,pos)
-        
-        tree=self.getTree()
-        
-        for socket in socks:
-            if isOut:
-                print(tree.links.new(new, socket))
-            else:
-                tree.links.new(socket,new)
-        
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"op",text="")

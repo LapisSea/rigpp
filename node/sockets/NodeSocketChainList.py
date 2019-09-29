@@ -32,8 +32,9 @@ class NodeSocketChainList(NodeSocket):
     def execute(self,context, data):
         if self.is_output:
             return self.node.execute(context, self, data)
-        if not self.is_linked:
+        
+        links=self.links
+        if not links:
             return []
-            
-        link=self.links[0]
-        return execNode(link.from_node, link.from_socket, context, data)
+        
+        return execSocket(links[0].from_socket, context,data)
