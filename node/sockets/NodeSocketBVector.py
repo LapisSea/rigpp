@@ -9,6 +9,8 @@ import math
 from ..BoneNodeTree import valChange
 import sys
 
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
 class NodeSocketBVector(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'

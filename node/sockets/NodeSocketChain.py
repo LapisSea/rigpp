@@ -5,7 +5,9 @@ from ...import_properties import *
 from bpy.types import Bone
 from ...utils import (execNode,execSocket)
 
-class NodeSocketChain(NodeSocket):
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
+class NodeSocketChain(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Chain Node Socket'
     
@@ -18,15 +20,8 @@ class NodeSocketChain(NodeSocket):
     def getCastExplicit(self,target):
         if target.bl_idname==self.bl_idname+"List":
             return "MakeList"
+        elif target.bl_idname=="NodeSocketBoneList":
+            return "GetChainBase"
         else:
             return None
     
-    def execute(self,context, data):
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return None
-        
-        return execSocket(links[0].from_socket, context,data)

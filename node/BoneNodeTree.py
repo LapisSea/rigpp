@@ -2,6 +2,7 @@ import bpy
 from bpy.types import NodeTree
 from ..utils import (makeId, runLater,onDepsgraph,execNode)
 from mathutils import Vector
+import traceback
 
 from ..import_properties import *
 
@@ -128,7 +129,7 @@ class BoneNodeTree(NodeTree):
                         self.links.new(soc2, toSoc)
                         
                         n.select=False
-                        
+    
     
     def update(self):
         
@@ -166,6 +167,15 @@ class BoneNodeTree(NodeTree):
         
         if hasattr(self,"node_cache"):
             del self.node_cache
+        
+        
+        for n in reversed(self.nodes):
+            if hasattr(n, "rules"):
+                try:
+                    n.updateRules()
+                except:
+                    traceback.print_exc()
+                
         
         self.validateLinks()
         

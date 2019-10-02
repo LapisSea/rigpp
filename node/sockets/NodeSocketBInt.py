@@ -9,7 +9,9 @@ import math
 from ..BoneNodeTree import valChange
 import sys
 
-class NodeSocketBInt(NodeSocket):
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
+class NodeSocketBInt(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
@@ -61,12 +63,3 @@ class NodeSocketBInt(NodeSocket):
     def canCast(self, socket):
         return socket.bl_idname=="NodeSocketBFloat"
     
-    def execute(self,context, data):
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return self.value
-            
-        return execSocket(links[0].from_socket, context,data)

@@ -71,6 +71,19 @@ class ModifyChain(BoneNode):
     bl_label = 'Modify chain'
     bl_icon = 'PLUS'
     
+    rules=[
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",0),
+            "list_agnostic": True, 
+            "accepted_types":["NodeSocketChain"],
+            "default":"NodeSocketChain"
+        }),
+        ("MIRROR_TYPE", {
+            "from": ("input",0),
+            "to": ("output",0)
+        }),
+    ]
+    
     def onUpd(self,ctx):
         n="Growth limit"
         minim=-1
@@ -102,18 +115,25 @@ class ModifyChain(BoneNode):
     #         layout.prop(self, "length")
     
     def execute(self,context, socket, data):
+        single=socket.bl_idname=="NodeSocketChain"
+        
         chains=execSocket(self.inputs[0], context, data)
+        
         if not chains:
-            return []
+            return None if single else []
         
         length=execSocket(self.inputs[3], context, data)
         if length==0:
-            return chains
+            return None if single else []
         
         start=execSocket(self.inputs[1], context, data)
         end=execSocket(self.inputs[2], context, data)
+        
         if not start and not end:
-            return chains
+            return None if single else []
+        
+        if single:
+            chains=[chains]
         
         arm=chains[0].base[0][1]
         
@@ -125,4 +145,8 @@ class ModifyChain(BoneNode):
         
         for chain in chains:
             chain.base=[(b.name,arm) for b in chain.base]
+        
+        if single:
+            return chains[0]
+        
         return chains

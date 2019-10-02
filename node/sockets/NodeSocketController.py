@@ -5,6 +5,8 @@ from ...import_properties import *
 from bpy.types import Bone
 from ...utils import execNode
 
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
 
 class NodeSocketController(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]

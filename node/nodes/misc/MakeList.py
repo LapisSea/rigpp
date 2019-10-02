@@ -13,18 +13,6 @@ class MakeList(BoneNode):
     bl_label = 'Make List'
     bl_icon = 'PLUS'
     
-    def setOutput(self,sType,tree):
-        socks=[link.to_socket for link in self.outputs[0].links]
-        
-        if not sType.endswith("List"):
-            sType=sType+"List"
-        
-        self.outputs.clear()
-        new=self.outputs.new(sType, "List")
-        
-        for sock in socks:
-            tree.links.new(new,sock)
-    
     def resize(self,tree):
         
         if not self.inputs:
@@ -42,35 +30,54 @@ class MakeList(BoneNode):
             self.inputs.new("NodeSocketAny", "Any")
         
         if len(self.inputs)==1 and self.outputs[0].bl_idname!="NodeSocketAnyList":
-            self.setOutput("NodeSocketAnyList",tree)
+            self.setIOType(self.outputs,0,"NodeSocketAnyList")
     
     
     def update(self):
         tree=self.getTree()
         
+        if self.outputs[0].bl_idname=="NodeSocketAnyList":
+            links=self.outputs[0].links
+            if links:
+                typ=links[0].to_socket.bl_idname
+                if typ.endswith("List"):
+                    self.setIOType(self.outputs,0,typ)
         
-        for input in self.inputs:
+        for i in range(len(self.inputs)):
+            inp=self.inputs[i]
             
-            if input.bl_idname=="NodeSocketAny":
-                links=input.links
+            if inp.bl_idname=="NodeSocketAny":
+                links=inp.links
                 if not links:
                     continue
                 
-                # self.setOutput(socket.bl_idname,tree)
-                
+                targetTyp="NodeSocketAny"
+                isOutAny=self.outputs[0].bl_idname=="NodeSocketAnyList"
                 
                 for link in links:
                     
                     socket=link.from_socket
                     
-                    inp=self.inputs.new(socket.bl_idname, "List" if socket.bl_idname.endswith("List") else "Element")
+                    typ=socket.bl_idname
                     
-                    tree.links.new(socket,inp)
+                    if not isOutAny:
+                        compare=typ if typ.endswith("List") else typ+"List"
+                        if compare!=self.outputs[0].bl_idname:
+                            self.getTree().links.remove(link)
+                            break
                     
-                    if self.outputs[0].bl_idname=="NodeSocketAnyList":
-                        self.setOutput(socket.bl_idname if socket.bl_idname.endswith("List") else socket.bl_idname+"List",tree)
+                    targetTyp=typ
+                    break
                 
-                self.inputs.remove(input)
+                if targetTyp=="NodeSocketAny":
+                    inp.name="Any"
+                else:
+                    inp.name="List" if targetTyp.endswith("List") else "Element"
+                
+                self.setIOType(self.inputs,i,targetTyp)
+                
+                if isOutAny:
+                    self.setIOType(self.outputs,0,typ if typ.endswith("List") else typ+"List")
         
         if not self.keepDups:
             

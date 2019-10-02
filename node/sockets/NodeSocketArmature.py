@@ -5,7 +5,9 @@ from ...import_properties import *
 from bpy.types import Bone
 from ...utils import (execNode,execSocket)
 
-class NodeSocketArmature(NodeSocket):
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
+class NodeSocketArmature(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Armature Node Socket'
     

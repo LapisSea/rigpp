@@ -5,8 +5,10 @@ from ...import_properties import *
 from bpy.types import Bone
 from ...utils import (execNode,execSocket)
 
+from .. import (BoneNodeSocket,BoneNodeSocketList)
 
-class NodeSocketBone(NodeSocket):
+
+class NodeSocketBone(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
@@ -36,13 +38,3 @@ class NodeSocketBone(NodeSocket):
             return "MakeChains"
         else:
             return None
-    
-    def execute(self,context, data):
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return None
-            
-        return execSocket(links[0].from_socket, context,data)

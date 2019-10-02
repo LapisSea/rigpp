@@ -13,6 +13,13 @@ class DebugDisplay(BoneNode):
     bl_label = 'Debug display'
     bl_icon = 'PLUS'
     
+    rules=[
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",0),
+            "default":"NodeSocketAny"
+        }),
+    ]
+    
     def isTerminator(self):
         return True
     
@@ -20,6 +27,16 @@ class DebugDisplay(BoneNode):
     
     def init(self, context):
         self.inputs.new("NodeSocketAny", "To display")
+    
+    def update(self):
+        
+        links=self.inputs[0].links
+        typ="NodeSocketAny"
+        if links:
+            typ=links[0].from_socket.bl_idname
+        
+        self.setIOType(self.inputs,0,typ)
+        
     
     def draw_buttons(self, context, layout): 
         

@@ -9,7 +9,9 @@ import math
 from ..BoneNodeTree import valChange
 import sys
 
-class NodeSocketBBool(NodeSocket):
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
+class NodeSocketBBool(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
@@ -27,14 +29,3 @@ class NodeSocketBBool(NodeSocket):
     # Socket color
     def draw_color(self, context, node):
         return (178/256, 106/256, 48/256, 1)
-    
-    
-    def execute(self,context, data):
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return self.value
-            
-        return execSocket(links[0].from_socket, context,data)

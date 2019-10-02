@@ -25,6 +25,9 @@ class GetListElement(BoneNode):
     
     
     def update(self):
+        if not self.outputs:
+            return
+        
         tree=self.getTree()
         
         typ="NodeSocketAnyList"
@@ -35,7 +38,11 @@ class GetListElement(BoneNode):
         else:
             l=self.outputs[0].links
             if l:
-                typ=l[0].to_socket.bl_idname+"List"
+                linkType=l[0].to_socket.bl_idname
+                if linkType.endswith("List"):
+                    tree.links.remove(l[0])
+                else:
+                    typ=linkType+"List"
         
         self.setIOType(self.inputs,0,typ)
         self.setIOType(self.outputs,0,typ[0:-4])

@@ -66,16 +66,38 @@ class SetBoneAttribute(BoneNode):
     bl_label = 'Set bone attribute'
     bl_icon = 'PLUS'
     
-    def change(self,ctx):
-        typ=attributeTypes[self.attr]
-        
+    def getAttribType(self):
+        return attributeTypes[self.attr]
+    
+    rules=[
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",0),
+            "list_agnostic": True, 
+            "accepted_types":["NodeSocketBone"],
+            "default":"NodeSocketBone"
+        }),
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",1),
+            "list_agnostic": True, 
+            "accepted_types":lambda self:[self.getAttribType()],
+            "default":lambda self:attributeTypes[self.attr]
+        }),
+        ("MIRROR_TYPE", {
+            "from": ("input",0),
+            "to": ("output",0)
+        }),
+    ]
+    
+    def updateVal(self):
+        typ=self.getAttribType()
+            
         if len(self.inputs)<2:
             self.inputs.new(name="Value", type=typ)
-        
-        if self.inputs[1].bl_idname!=typ:
-            self.inputs.remove(self.inputs[1])
-            self.inputs.new(name="Value", type=typ)
-            
+        else:
+            self.setIOType(self.inputs,1, typ)
+    
+    def change(self,ctx):
+        self.updateVal()
         
         valChange(self,ctx)
     
@@ -86,27 +108,42 @@ class SetBoneAttribute(BoneNode):
     
     def update(self):
         _scrape()
+        # self.updateVal()
     
     def init(self, context):
-        _scrape()
-        self.inputs.new("NodeSocketBoneList", "Bones")
-        self.outputs.new("NodeSocketBoneList", "Bones")
+        self.inputs.new("NodeSocketBone", "Bones")
+        self.inputs.new("NodeSocketAny", "Value")
+        self.outputs.new("NodeSocketBone", "Bones")
         self.change(context)
     
     def execute(self,context, socket,data):
         _scrape()
         
+        
         bones=execSocket(self.inputs[0], context, data)
+        single=socket.bl_idname=="NodeSocketBone"
         if not bones:
-            return []
+            return None if single else []
+        
+        if single:
+            bones=[bones]
         
         value=execSocket(self.inputs[1], context, data)
         
         def do(armature):
             ebs=armature.data.edit_bones
-            for bone in bones:
-                setattr(ebs[bone[0]],self.attr,value)
+            for i in range(len(bones)):
+                bone=bones[i]
+                if bone:
+                    eb=ebs[bone[0]]
+                    setattr(eb,self.attr,value)
+                    bones[i]=(eb.name,armature)
         
-        objModeSession(bones[0][1],"EDIT",do)
+        b=next(bo for bo in bones if bo!=None)
+        armature=b[1]
         
+        objModeSession(armature,"EDIT",do)
+        
+        if single:
+            return bones[0]
         return bones
