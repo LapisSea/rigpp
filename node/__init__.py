@@ -10,6 +10,7 @@ sys.path.insert(0, '..')
 
 class BoneNodeSocket(NodeSocket):
     bl_label = 'Bone Node Socket'
+    display_shape="DIAMOND"
     
     def execute(self,context, data):
         if self.is_output:
@@ -24,8 +25,15 @@ class BoneNodeSocket(NodeSocket):
 class BoneNodeSocketList(NodeSocket):
     bl_label = 'Bone Node Socket'
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.display_shape="DIAMOND"
+    
     def draw(self, context, layout, node, text):
         def doText():
+            if self.is_output:
+                return text
+            
             tree=context.space_data.edit_tree
             
             if hasattr(tree,"run_cache"):
@@ -57,6 +65,7 @@ class BoneNode(Node):
         return ntree.bl_idname == TREE_ID
     
     def updateRules(self):
+        changed=[False]
         if hasattr(self,"rules"):
             
             def ADDAPTIVE_SOCKET(data):
@@ -110,7 +119,9 @@ class BoneNode(Node):
                 
                 
                 if socketType!=None:
-                    self.setIOType(sockets,index, socketType)
+                    c=self.setIOType(sockets, index, socketType)
+                    if c:
+                        changed[0]=True
             
             
             def MIRROR_TYPE(data):
@@ -140,7 +151,9 @@ class BoneNode(Node):
                             if sock==target:
                                 index=i
                     
-                    self.setIOType(toSocks,index, fromSock.bl_idname)
+                    c=self.setIOType(toSocks,index, fromSock.bl_idname)
+                    if c:
+                        changed[0]=True
                 
                 if isinstance(toL,list):
                     for to in toL:
@@ -186,7 +199,10 @@ class BoneNode(Node):
                                 if sock==target:
                                     index=i
                         
-                        self.setIOType(toSocks,index, typ)
+                        c=self.setIOType(toSocks,index, typ)
+                        if c:
+                            print(changed)
+                            changed[0]=True
                 
                 if isinstance(toL,list):
                     for to in toL:
@@ -199,8 +215,18 @@ class BoneNode(Node):
                 key=rule[0]
                 if key == "self":
                     raise Exception()
-                loc[key](rule[1])
                 
+                try:
+                    loc[key](rule[1])
+                # except IndexError as e:
+                #     import traceback
+                #     traceback.print_exc()
+                except:
+                    import traceback
+                    traceback.print_exc()
+            
+        
+        return changed[0]
     
     def getTree(self, context=None):
         if context==None:
@@ -212,7 +238,7 @@ class BoneNode(Node):
         inp=sockets[pos]
         
         if inp.bl_idname==typ:
-            return
+            return False
         
         if not isinstance(typ,str):
             raise Exception("typ arg not string")
@@ -221,14 +247,19 @@ class BoneNode(Node):
         isOut=inp.is_output
         socks=[e.to_socket if isOut else e.from_socket for e in inp.links]
         
+        tree=self.getTree()
+        
+        tree.startMultiChange()
+        
+        
         sockets.remove(inp)
         new=sockets.new(typ,name)
+        
         
         p1=len(sockets)-1
         if p1!=pos:
             sockets.move(p1,pos)
         
-        tree=self.getTree()
         
         for socket in socks:
             if isOut:
@@ -236,6 +267,9 @@ class BoneNode(Node):
             else:
                 tree.links.new(socket,new)
         
+        tree.endMultiChange()
+        
+        return True
 
 class BoneNodeCategory(nodeitems_utils.NodeCategory):
     @classmethod

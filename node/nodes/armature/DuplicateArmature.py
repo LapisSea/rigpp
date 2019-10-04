@@ -63,8 +63,14 @@ class DuplicateArmature(BoneNode):
     
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketArmature', "Armature")
         self.outputs.new('NodeSocketArmature', "New Armature")
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"nameDerivation", text="")

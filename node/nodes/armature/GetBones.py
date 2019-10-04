@@ -14,9 +14,14 @@ class GetBones(BoneNode):
     bl_icon = 'PLUS'
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketArmature", "Armature")
         self.outputs.new('NodeSocketBoneList', "Bones")
-    
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         obj=execSocket(self.inputs[0], context, data)

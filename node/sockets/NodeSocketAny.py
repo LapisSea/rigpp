@@ -14,7 +14,6 @@ class NodeSocketAny(BoneNodeSocket):
     def draw(self, context, layout, node, text):
         layout.label(text=text)
 
-    # Socket color
     def draw_color(self, context, node):
         return (0.5, 0.5, 0.5, 1)
     

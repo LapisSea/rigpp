@@ -99,8 +99,14 @@ class MakeList(BoneNode):
     keepDups: BoolProperty(name="Keep duplicates", default=True, update=updateTrees)
         
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketAny", "Any")
         self.outputs.new("NodeSocketAnyList", "List")
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"keepDups")

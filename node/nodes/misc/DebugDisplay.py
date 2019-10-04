@@ -26,7 +26,13 @@ class DebugDisplay(BoneNode):
     data: StringProperty()
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketAny", "To display")
+        
+        tree.endMultiChange()
+        
     
     def update(self):
         

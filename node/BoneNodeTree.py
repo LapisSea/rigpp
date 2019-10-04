@@ -38,6 +38,15 @@ class BoneNodeTree(NodeTree):
     uid: IntProperty(default=1)
     autoExecute: BoolProperty(name="Auto execute", default=True)
     
+    blockUpdates=False
+    
+    def startMultiChange(self):
+        self.blockUpdates=True
+    
+    def endMultiChange(self):
+        self.blockUpdates=False
+        self.update()
+    
     def newUID(self):
         u=self.uid
         self.uid+=1
@@ -62,76 +71,119 @@ class BoneNodeTree(NodeTree):
         return self.nodes.new(makeId(type));
     
     def validateLinks(self):
-        
-        for link in self.links:
-            fromSoc=link.from_socket
-            toSoc=link.to_socket
+        do=True
+        while do:
+            do=False
             
-            def matchSoc(l,r):
-                if l.bl_idname==r.bl_idname:
-                    return True
+            for link in self.links:
+                fromSoc=link.from_socket
+                toSoc=link.to_socket
                 
-                if hasattr(l, "canCast"):
-                    if l.canCast(r):
+                def matchSoc(l,r):
+                    if l.bl_idname==r.bl_idname:
                         return True
-                
-                if hasattr(r, "canCast"):
-                    if r.canCast(l):
+                    
+                    if hasattr(l, "canCast"):
+                        if l.canCast(r):
+                            return True
+                    
+                    if hasattr(r, "canCast"):
+                        if r.canCast(l):
+                            return True
+                    
+                    if isinstance( r.node,bpy.types.NodeReroute):
+                        reroute=r.node
+                        inputs=reroute.inputs
+                        outputs=reroute.outputs
+                        
+                        ins=[s.from_socket for s in inputs[0].links]
+                        inputs.clear()
+                        ous=[s.to_socket for s in outputs[0].links]
+                        outputs.clear()
+                        
+                        newIn=inputs.new(l.bl_idname,l.name)
+                        newOu=outputs.new(l.bl_idname,l.name)
+                        
+                        for s in ins:
+                            self.links.new(s,newIn)
+                        
+                        for s in ous:
+                            self.links.new(newOu,s)
+                        
                         return True
+                    
+                    return False
                 
-                return False
-            
-            bad=False
-            
-            if not matchSoc(fromSoc, toSoc):
-                self.links.remove(link)
+                if not matchSoc(fromSoc, toSoc):
+                    c1=self._updateRules(fromSoc.node)
+                    c2=self._updateRules(toSoc.node)
+                    c=c1 or c2
+                    if c:
+                        do=True
+                        break
                 
-                if hasattr(fromSoc, "getCastExplicit"):
-                    caster=fromSoc.getCastExplicit(toSoc)
-                    if caster:
-                        id=makeId(caster)
-                        
-                        n=None
-                        
-                        for dup in self.nodes:
-                            if dup.bl_idname==id:
-                                ok=False
-                                for link in self.links:
-                                    if link.from_socket==fromSoc and link.to_socket.node==dup:
-                                        ok=True
+                if not matchSoc(fromSoc, toSoc):
+                    
+                    try:
+                        self.links.remove(link)
+                    except:
+                        do=True
+                        break
+                    
+                    if hasattr(fromSoc, "getCastExplicit"):
+                        caster=fromSoc.getCastExplicit(toSoc)
+                        if caster:
+                            id=makeId(caster)
+                            
+                            n=None
+                            
+                            for dup in self.nodes:
+                                if dup.bl_idname==id:
+                                    ok=False
+                                    for link in self.links:
+                                        if link.from_socket==fromSoc and link.to_socket.node==dup:
+                                            ok=True
+                                            break
+                                    if ok:
+                                        n=dup
                                         break
-                                if ok:
-                                    n=dup
+                            
+                            if n==None:
+                                n=self.nodes.new(id)
+                                n.location=(fromSoc.node.location+toSoc.node.location)/2
+                            
+                            soc1=None
+                            soc2=None
+                            
+                            for soc in n.inputs:
+                                if matchSoc(fromSoc, soc):
+                                    soc1=soc
                                     break
-                        
-                        if n==None:
-                            n=self.nodes.new(id)
-                            n.location=(fromSoc.node.location+toSoc.node.location)/2
-                        
-                        soc1=None
-                        soc2=None
-                        
-                        for soc in n.inputs:
-                            if matchSoc(fromSoc, soc):
-                                soc1=soc
-                                break
-                        if soc1==None:
-                            raise Exception("Failed to find casting input socket")
-                        
-                        for soc in n.outputs:
-                            if matchSoc(toSoc, soc):
-                                soc2=soc
-                                break
-                        if soc2==None:
-                            raise Exception("Failed to find casting output socket")
-                        
-                        self.links.new(fromSoc, soc1)
-                        self.links.new(soc2, toSoc)
-                        
-                        n.select=False
+                            if soc1==None:
+                                raise Exception("Failed to find casting input socket")
+                            
+                            for soc in n.outputs:
+                                if matchSoc(toSoc, soc):
+                                    soc2=soc
+                                    break
+                            if soc2==None:
+                                raise Exception("Failed to find casting output socket")
+                            
+                            self.links.new(fromSoc, soc1)
+                            self.links.new(soc2, toSoc)
+                            
+                            n.select=False
     
+    def _updateRules(self,node):
+        if hasattr(node, "rules"):
+            return node.updateRules()
+        return False
     
     def update(self):
+        
+        if self.blockUpdates:
+            print("INFO: Blocked update")
+            return
         
         if self.name not in bpy.data.node_groups:
             print("DEB: Tree "+self.name+" not in bpy.data.node_groups, refusing to update")
@@ -168,14 +220,18 @@ class BoneNodeTree(NodeTree):
         if hasattr(self,"node_cache"):
             del self.node_cache
         
+        change=True
+        maxIter=200
+        limit=maxIter
         
-        for n in reversed(self.nodes):
-            if hasattr(n, "rules"):
-                try:
-                    n.updateRules()
-                except:
-                    traceback.print_exc()
-                
+        while change and limit>0:
+            limit-=1
+            change=False
+            
+            for n in reversed(self.nodes):
+                c=self._updateRules(n)
+                if c:
+                    change=True
         
         self.validateLinks()
         
@@ -223,13 +279,6 @@ class BoneNodeTree(NodeTree):
         
         self.update()
         
-        
-        # import traceback
-        
-        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        # traceback.print_stack()
         
         try:
             data={

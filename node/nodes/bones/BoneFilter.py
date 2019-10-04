@@ -35,6 +35,9 @@ class BoneFilter(BoneNode):
                 break
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketBoneList", "Bones")
         self.outputs.new('NodeSocketBoneList', "Match Bones")
         self.outputs.new('NodeSocketBoneList', "Fail Bones")
@@ -42,6 +45,8 @@ class BoneFilter(BoneNode):
         self.getTree().links.new(self.inputs[0], self.outputs[0])
         
         self.resize()
+        
+        tree.endMultiChange()
     
     def copy(self, node):
         self.resize()

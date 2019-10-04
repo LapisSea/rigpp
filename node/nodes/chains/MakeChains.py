@@ -88,8 +88,14 @@ class MakeChains(BoneNode):
     constructionType: EnumProperty(name="Construction Type",items=constructionTypes, default=constructionTypes[0][0], update=valChange)
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketBoneList", "Bones")
         self.outputs.new('NodeSocketChainList', "Chains")
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"constructionType", text="")

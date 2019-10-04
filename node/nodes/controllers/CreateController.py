@@ -18,10 +18,16 @@ class CreateController(BoneNode):
     ctrlName: StringProperty(name="Name", default="MyController")
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketBoneGroup', "Group")
         self.inputs.new('NodeSocketInt', "Layer")
         
         self.outputs.new('NodeSocketController', "Controller")
+        
+        tree.endMultiChange()
+        
         
     
     def draw_buttons(self, context, layout):

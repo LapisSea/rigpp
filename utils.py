@@ -642,6 +642,16 @@ def execNode(node, socket, context, data):
     return result
     
 def execSocket(socket, context, data):
+    node=socket.node
+    if node.bl_idname=="NodeReroute":
+        ins=node.inputs[0]
+        links=ins.links
+        if links:
+            link=links[0]
+            return execSocket(link.from_socket, context, data)
+        if socket.bl_idname.endswith("List"):
+            return []
+        return None
     
     # if socket.bl_idname in ("NodeSocketInt","NodeSocketFloat","NodeSocketBool"):
         

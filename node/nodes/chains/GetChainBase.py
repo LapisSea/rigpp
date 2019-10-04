@@ -15,8 +15,14 @@ class GetChainBase(BoneNode):
     bl_icon = 'PLUS'
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketChain', "Chain")
         self.outputs.new('NodeSocketBoneList', "Base")
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         chain=execSocket(self.inputs[0], context, data)

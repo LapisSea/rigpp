@@ -28,8 +28,14 @@ class GetBoneParent(BoneNode):
     ]
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketBone', "Bone")
         self.outputs.new('NodeSocketBone', "Parent")
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         bones=execSocket(self.inputs[0], context, data)
@@ -39,7 +45,10 @@ class GetBoneParent(BoneNode):
         def getParent(bone):
             armature=bone[1]
             name=bone[0]
-            parent=armature.data.bones[name].parent
+            bones=armature.data.bones
+            if name not in bones:
+                return None
+            parent=bones[name].parent
             
             if not parent:
                 return None

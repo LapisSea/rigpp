@@ -38,8 +38,14 @@ class GetListLen(BoneNode):
                 self.setInput("NodeSocketAnyList",tree)
         
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketAnyList", "List")
         self.outputs.new("NodeSocketBInt", "Length")
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         data=execSocket(self.inputs[0], context, data)

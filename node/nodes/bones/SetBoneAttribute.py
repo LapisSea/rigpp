@@ -19,6 +19,8 @@ def _scrape():
     if attributes:
         return
     
+    print("Scraping ")
+    
     context=bpy.context
     
     arm=bpy.data.armatures.new("__ARM_SCRAP")
@@ -67,6 +69,7 @@ class SetBoneAttribute(BoneNode):
     bl_icon = 'PLUS'
     
     def getAttribType(self):
+        _scrape()
         return attributeTypes[self.attr]
     
     rules=[
@@ -111,14 +114,20 @@ class SetBoneAttribute(BoneNode):
         # self.updateVal()
     
     def init(self, context):
+        
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketBone", "Bones")
         self.inputs.new("NodeSocketAny", "Value")
         self.outputs.new("NodeSocketBone", "Bones")
         self.change(context)
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket,data):
         _scrape()
-        
         
         bones=execSocket(self.inputs[0], context, data)
         single=socket.bl_idname=="NodeSocketBone"

@@ -11,6 +11,8 @@ class NodeSocketChain(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Chain Node Socket'
     
+    
+    
     def draw(self, context, layout, node, text):
         layout.label(text=text)
 
@@ -18,6 +20,7 @@ class NodeSocketChain(BoneNodeSocket):
         return (0.1, 0.3, 1, 1)
     
     def getCastExplicit(self,target):
+        print(self)
         if target.bl_idname==self.bl_idname+"List":
             return "MakeList"
         elif target.bl_idname=="NodeSocketBoneList":
@@ -25,3 +28,6 @@ class NodeSocketChain(BoneNodeSocket):
         else:
             return None
     
+    
+    # def execute(self,context, data):
+    #     self.display_shape="CUBE"

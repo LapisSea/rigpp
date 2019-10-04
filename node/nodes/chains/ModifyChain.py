@@ -100,12 +100,18 @@ class ModifyChain(BoneNode):
     
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs .new('NodeSocketChainList', "Chains")
         self.inputs .new('NodeSocketBBool', "On start")
         self.inputs .new('NodeSocketBBool', "On end")
         self.inputs .new('NodeSocketBInt', "Limit").value=-1
         self.outputs.new('NodeSocketChainList', "Chains")
         self.onUpd(self,context)
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout):
         layout.prop(self, "modType", text="")

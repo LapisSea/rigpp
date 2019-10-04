@@ -25,8 +25,6 @@ class GetListElement(BoneNode):
     
     
     def update(self):
-        if not self.outputs:
-            return
         
         tree=self.getTree()
         
@@ -48,9 +46,15 @@ class GetListElement(BoneNode):
         self.setIOType(self.outputs,0,typ[0:-4])
         
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketAnyList", "List")
         self.inputs.new("NodeSocketBInt", "Index")
         self.outputs.new("NodeSocketAny", "Element")
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout): 
         layout.prop(self,"wrap")

@@ -84,8 +84,6 @@ class AddChainAttribute(BoneNode):
         self.validateId()
         
         tree=self.getTree()
-        if not tree:
-            return
         
         inNode=tree.findNode("ChainAttributeIn",lambda n:n.id==self.attributeId)
         
@@ -107,8 +105,14 @@ class AddChainAttribute(BoneNode):
         return self.attributeId
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketChainList', "Chains")
         self.outputs.new('NodeSocketChainList', "Chains")
+        
+        tree.endMultiChange()
+        
     
     def draw_buttons(self, context, layout):
         op=layout.operator("rigpp.empty_chain_attribute_resolve")

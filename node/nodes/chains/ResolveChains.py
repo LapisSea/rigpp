@@ -17,9 +17,15 @@ class ResolveChains(BoneNode):
         return True
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketArmature', "Armature")
         self.inputs.new('NodeSocketChainList', "Chains")
         self.outputs.new('NodeSocketArmature', "Armature")
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         

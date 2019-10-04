@@ -19,9 +19,14 @@ class AddBonesToArmature(BoneNode):
         layout.prop(self,"keepDups")
         
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new('NodeSocketArmature', "Armature")
         self.inputs.new("NodeSocketBoneList", "Bones")
         self.outputs.new('NodeSocketArmature', "Armature")
+        
+        tree.endMultiChange()
     
     def execute(self,context, socket,tree):
         armature=self.inputs[0].execute(context,tree)

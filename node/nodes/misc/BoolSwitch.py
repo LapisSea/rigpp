@@ -63,8 +63,6 @@ class BoolSwitch(BoneNode):
             self.setInType(pos,tree,"NodeSocketAny")
     
     def update(self):
-        if not self.outputs:
-            return
         
         tree=self.getTree()
         
@@ -74,10 +72,16 @@ class BoolSwitch(BoneNode):
         self.updateOut(tree)
         
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.inputs.new("NodeSocketBBool", "Condition")
         self.inputs.new("NodeSocketAny", "True")
         self.inputs.new("NodeSocketAny", "False")
         self.outputs.new("NodeSocketAny", "Result").value=True
+        
+        tree.endMultiChange()
+        
     
     def execute(self,context, socket, data):
         condition=execSocket(self.inputs[0], context, data)

@@ -75,9 +75,15 @@ class ChainAttributeIn(BoneNode):
         self.id=-1
     
     def init(self, context):
+        tree=self.getTree()
+        tree.startMultiChange()
+        
         self.outputs.new('NodeSocketArmature', "Armature")
         self.outputs.new('NodeSocketControllerList', "Controllers")
         self.outputs.new('NodeSocketBoneList', "Base bones")
+        
+        tree.endMultiChange()
+        
     
     def update(self):
         
