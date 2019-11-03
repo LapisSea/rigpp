@@ -15,6 +15,12 @@ class AddChainAttribute(BoneNode):
     bl_label = 'Add chain attribute'
     bl_icon = 'PLUS'
     
+    def getGroupId(self):
+        return self.attributeId
+    
+    def groupMarkers(self):
+        return None if self.attributeId==noAttr[0][0] else ("REFERENCE",)
+    
     def getAttributes(self, context=None):
         
         def generate(tree):
@@ -121,14 +127,13 @@ class AddChainAttribute(BoneNode):
         op.caller=self.name
         
         # layout.label(text="Id: "+str(self.attributeId))
-        
-        if self.attribute!=noAttr[0]:
+        if self.attribute!=noAttr[0][0]:
             layout.prop(self,"attribute", text="")
     
     def execute(self,context, socket, data):
         chains=execSocket(self.inputs[0], context, data)
         
-        if self.attribute!=noAttr[0]:
+        if self.attribute!=noAttr[0][0]:
             for chain in chains:
                 chain.attributes.append(self)
         

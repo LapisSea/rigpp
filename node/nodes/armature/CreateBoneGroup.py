@@ -2,35 +2,13 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import makeId
+from ....utils import (makeId,execSocket)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
 
-colors=[
-    ("0","DEFAULT", ""),
-    ("1","THEME01", ""),
-    ("2","THEME02", ""),
-    ("3","THEME03", ""),
-    ("4","THEME04", ""),
-    ("5","THEME05", ""),
-    ("6","THEME06", ""),
-    ("7","THEME07", ""),
-    ("8","THEME08", ""),
-    ("9","THEME09", ""),
-    ("10","THEME10", ""),
-    ("11","THEME11", ""),
-    ("12","THEME12", ""),
-    ("13","THEME13", ""),
-    ("14","THEME14", ""),
-    ("15","THEME15", ""),
-    ("16","THEME16", ""),
-    ("17","THEME17", ""),
-    ("18","THEME18", ""),
-    ("19","THEME19", ""),
-    ("20","THEME20", ""),
-]
+colors=[("0","DEFAULT", "")]+[(str(i), "THEME"+str(i).zfill(2), "") for i in range(1, 21)]
 
 class CreateBoneGroup(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -39,6 +17,8 @@ class CreateBoneGroup(BoneNode):
     bl_width_default=160
     
     def setColors(self,ctx,id):
+        
+        
         colors=ctx.preferences.themes["Default"].bone_color_sets[id]
         self.activeCol=colors.active
         self.normalCol=colors.normal
@@ -49,7 +29,6 @@ class CreateBoneGroup(BoneNode):
             self.setColors(ctx,int(self.colorSet)-1)
         valChange(self,ctx)
     
-    groupName: StringProperty(name="Name", default="MyGroup", update=valChange)
     coloredConstraints: BoolProperty(name="Colored Constraints", default=False, update=valChange)
     customColors: BoolProperty(name="Custom colors", default=False, update=setChanged)
     colorSet: EnumProperty(name="Color set", items=colors, update=setChanged)
@@ -59,11 +38,13 @@ class CreateBoneGroup(BoneNode):
     selectCol: FloatVectorProperty(subtype="COLOR",size = 3,min=0, max=1, default=(0.8,0.8,0.8), update=valChange)
     
     def init(self, context):
+        self.inputs.new('NodeSocketBStr', "Name").value="My Bone Group"
+        self.inputs.new('NodeSocketArmature', "Armature")
         self.outputs.new('NodeSocketBoneGroup', "Group")
         self.setColors(context,1)
     
     def draw_buttons(self, context, layout):
-        layout.prop(self, "groupName", text="")
+        # layout.prop(self, "groupName", text="")
         layout.prop(self, "coloredConstraints")
         layout.prop(self, "customColors")
         
@@ -86,21 +67,24 @@ class CreateBoneGroup(BoneNode):
     
     def execute(self,context, socket, data):
         group=None
-        groups=data["armature"].pose.bone_groups
-        if self.groupName in groups:
-            group=groups[self.groupName]
+        groupName=execSocket(self.inputs[0], context, data)
+        armature=execSocket(self.inputs[1], context, data)
+        
+        groups=armature.pose.bone_groups
+        
+        if groupName in groups:
+            group=groups[groupName]
         else:
-            group=groups.new(name=self.groupName)
+            group=groups.new(name=groupName)
         
-        if not self.customColors:
+        if self.customColors:
+            group.color_set="CUSTOM"
+            col=group.colors
+            col.active=self.activeCol
+            col.normal=self.normalCol
+            col.select=self.selectCol
+            col.show_colored_constraints=self.coloredConstraints
+        else:
             group.color_set=colors[int(self.colorSet)][1]
-            return group
         
-        group.color_set="CUSTOM"
-        col=group.colors
-        col.active=self.activeCol
-        col.normal=self.normalCol
-        col.select=self.selectCol
-        col.show_colored_constraints=self.coloredConstraints
-        
-        return group
+        return (armature, group) 

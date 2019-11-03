@@ -63,3 +63,9 @@ class NodeSocketBInt(BoneNodeSocket):
     def canCast(self, socket):
         return socket.bl_idname=="NodeSocketBFloat"
     
+    
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None

@@ -63,3 +63,9 @@ class NodeSocketBStr(NodeSocket):
             return self.value
         
         return execSocket(links[0].from_socket, context,data)
+    
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None

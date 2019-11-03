@@ -7,6 +7,7 @@ from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 
 class GetBoneParent(BoneNode):
@@ -43,19 +44,19 @@ class GetBoneParent(BoneNode):
             return None
         
         def getParent(bone):
-            armature=bone[1]
-            name=bone[0]
-            bones=armature.data.bones
-            if name not in bones:
+            bon=bone.getBone()
+            if not bon:
                 return None
-            parent=bones[name].parent
+            
+            parent=bon.parent
             
             if not parent:
                 return None
             
-            return (parent.name, armature)
+            return BoneRef(bone.armature, parent.name)
         
-        if isinstance(bones, list):
-            return [getParent(bone) for bone in bones]
+        if isinstance(bones, BoneRefList):
+            
+            return BoneRefList([getParent(bone) for bone in bones.refs])
         
         return getParent(bones)

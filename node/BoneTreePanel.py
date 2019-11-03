@@ -1,5 +1,5 @@
 import bpy
-from ..utils import makeId
+from ..utils import (makeId, getTree)
 from .BoneNodeTree import (TREE_ID,valChange)
 from ..import_properties import *
 
@@ -11,17 +11,13 @@ class BoneTreePanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        tree = cls.getTree()
+        tree = getTree(context)
         if tree is None: return False
         return tree.bl_idname == TREE_ID
-
-    @classmethod
-    def getTree(cls):
-        return bpy.context.space_data.edit_tree
         
     def draw(self, context):
         layout = self.layout
-        tree=self.getTree()
+        tree=getTree(context)
         
         c = layout.column()
         c.scale_y = 1.6
@@ -38,6 +34,7 @@ class RigPP_OT_PickArmature(bpy.types.Operator):
     bl_description = ""
     bl_options = {"REGISTER",'UNDO'}
     
+    
     @classmethod
     def poll(self, context):
         for obj in context.selected_objects:
@@ -46,11 +43,7 @@ class RigPP_OT_PickArmature(bpy.types.Operator):
         return False
 
     def execute(self, context):
-        tree=None
-        try:
-            tree=self.getTree()
-        except:
-            return {"FINISHED"}
+        tree=getTree(context)
             
         off=0
         
@@ -60,7 +53,6 @@ class RigPP_OT_PickArmature(bpy.types.Operator):
             
             n=tree.newNode("GetArmature")
             n.value=obj
-            n.hide=True
             n.location=tree.view_center
             n.location[0]-=n.width/2
             n.location[1]+=off
@@ -75,20 +67,16 @@ class RigPP_OT_ExecuteTree(bpy.types.Operator):
     bl_description = ""
     bl_options = {"REGISTER",'UNDO'}
     
-    
-    def getTree(self):
-        return bpy.context.space_data.edit_tree
         
     @classmethod
     def poll(self, context):
-        return True
+        try:
+            return getTree(context)!=None
+        except:
+            return False
 
     def execute(self, context):
-        tree=None
-        try:
-            tree=self.getTree()
-        except:
-            return {"FINISHED"}
+        tree=getTree(context)
         
         tree.execute(context)
         return {"FINISHED"}

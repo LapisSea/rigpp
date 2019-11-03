@@ -8,55 +8,15 @@ from ....import_properties import *
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
 
+from ....name_deriver import name_deriver
 
-def doANUM(name,value, context):
-    segments=name.split(".")
-    if len(segments)==1:
-        segments.append("000")
-    
-    if len(segments)>1:
-        try:
-            num=int(segments[-1])
-            segments[-1]=str(num+1).zfill(3)
-        except:
-            segments.append("001")
-            pass
-    
-    return ".".join(segments)
-
-def doADDP(name,value, context):
-    return makeName(name, value)
-
-def doREMP(name,value, context):
-    segments=name.split(".")
-    try:
-        segments.remove(value)
-    except:
-        pass
-    return ".".join(segments)
-
-def doNEWN(name,value, context):
-    return value
-
-nameDerivationTypes=[
-    ("ANUM","Append number", "The blender default way"),
-    ("ADDP","Add name part", "Adds name part to the end of the name (gen + My.Armature.001 = My.Armature.gen.001"),
-    ("REMP","Remove name part", "Removes name part at the end of the name (My.Armature.base.001 - base = My.Armature.001)"),
-    ("NEWN", "New name", "Use a new unrelated name")
-]
-nameDerivators={
-    "ANUM": doANUM,
-    "ADDP": doADDP,
-    "REMP": doREMP,
-    "NEWN": doNEWN,
-}
 
 class DuplicateArmature(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
     bl_label = 'Duplicate armature'
     bl_icon = 'PLUS'
     
-    nameDerivation: EnumProperty(items=nameDerivationTypes, description="How to generate new armature name",default="REMP", update=valChange)
+    nameDerivation: EnumProperty(items=name_deriver.types, description="How to generate new armature name", update=valChange)
     nameValue: StringProperty(update=valChange)
     
     deleteExisting: BoolProperty(name="Delete existing", update=valChange)
@@ -84,7 +44,7 @@ class DuplicateArmature(BoneNode):
         if obj==None:
             return None
         
-        name=nameDerivators.get(self.nameDerivation)(obj.name, self.nameValue,context)
+        name=name_deriver.derive(self.nameDerivation, obj.name, self.nameValue)
         copied=None
         collections=None #context.scene.master_collection
         

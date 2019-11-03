@@ -7,6 +7,7 @@ from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 
 class GetChainBase(BoneNode):
@@ -29,4 +30,4 @@ class GetChainBase(BoneNode):
         if not chain:
             return []
         
-        return chain.base.copy()
+        return chain.base

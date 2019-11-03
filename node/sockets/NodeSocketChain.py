@@ -20,7 +20,6 @@ class NodeSocketChain(BoneNodeSocket):
         return (0.1, 0.3, 1, 1)
     
     def getCastExplicit(self,target):
-        print(self)
         if target.bl_idname==self.bl_idname+"List":
             return "MakeList"
         elif target.bl_idname=="NodeSocketBoneList":

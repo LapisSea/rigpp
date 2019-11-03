@@ -13,6 +13,12 @@ class ChainAttributeOut(BoneNode):
     bl_label = 'Get armature bones'
     bl_icon = 'PLUS'
     
+    def groupMarkers(self):
+        return ("END","REFERENCE")
+    
+    def getGroupId(self):
+        return self.id
+    
     id: IntProperty(default=-1, update=updateTrees)
     
     def init(self, context):
@@ -35,11 +41,10 @@ class ChainAttributeOut(BoneNode):
             tree.nodes.remove(self)
             return
         
-        self.use_custom_color=so.use_custom_color
-        self.color=so.color
         self.label=so.attrName
         
     def runGroup(self,context, data):
-        controllers=execSocket(self.inputs[1], context, data)
         
-        # print("ay",controllers)
+        # controllers=execSocket(self.inputs[1], context, data)
+        
+        return [execSocket(inp, context, data) for inp in self.inputs]

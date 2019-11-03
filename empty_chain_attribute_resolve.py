@@ -24,7 +24,7 @@ class RigPP_OT_EmptyChainAttributeResolve(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.node.select_all(action='DESELECT')
         
-        tree=self.getTree()
+        tree=getTree()
         n=tree.newNode("ChainAttributeIn")
         
         caller=tree.nodes[self.caller]

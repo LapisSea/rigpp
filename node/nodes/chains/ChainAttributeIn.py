@@ -14,20 +14,16 @@ class ChainAttributeIn(BoneNode):
     bl_label = 'Chain attribute input'
     bl_icon = 'PLUS'
     
+    def groupMarkers(self):
+        return ("START","REFERENCE")
+    
+    def getGroupId(self):
+        return self.id
     
     def nameChange(self,ctx):
         updateTrees()
     
-    def idChange(self,ctx):
-        import random
-        random.seed(self.id)
-        base=0.4
-        randomness=0.4
-        self.use_custom_color=True
-        self.color=(base+random.random()*randomness,base+random.random()*randomness,base+random.random()*randomness)
-        updateTrees()
-    
-    id: IntProperty(default=-1, update=idChange)
+    id: IntProperty(default=-1, update=updateTrees)
     attrName: StringProperty(name="Name", default="MyAttribute", update=nameChange)
     
     customInputs: CollectionProperty(type=SocketReference)
@@ -37,13 +33,15 @@ class ChainAttributeIn(BoneNode):
         
     def ensureDifferentNames(self,tree):
         ins=tree.nodesByType("ChainAttributeIn")
+        
         last=None
         while last!=self.attrName:
             last=self.attrName
             for tr in ins:
                 if tr==self:
                     continue
-                if tr.name==self.attrName: 
+                
+                if tr.attrName==self.attrName: 
                     pos=self.attrName.rfind(".")
                     if pos==-1:
                         self.attrName=self.attrName+".001"
@@ -63,20 +61,14 @@ class ChainAttributeIn(BoneNode):
             out.location[0]+=400
             out.label=self.attrName
     
-    def update(self):
-        tree=self.getTree()
-        if self.id==-1:
-            self.id=tree.newUID()
-        
-        self.ensureDifferentNames(tree)
-        self.ensureOut(tree)
-    
     def copy(self, ctx):
         self.id=-1
     
     def init(self, context):
         tree=self.getTree()
         tree.startMultiChange()
+        
+        self.outputs.new('NodeSocketBStr', "Name")
         
         self.outputs.new('NodeSocketArmature', "Armature")
         self.outputs.new('NodeSocketControllerList', "Controllers")
@@ -87,13 +79,20 @@ class ChainAttributeIn(BoneNode):
     
     def update(self):
         
+        tree=self.getTree()
+        if self.id==-1:
+            self.id=tree.newUID()
+        
+        self.ensureDifferentNames(tree)
+        self.ensureOut(tree)
+        
         for i in range(len(self.customInputs)):
             cIn=self.customInputs[i]
-            if len(self.outputs)-3<=i:
+            if len(self.outputs)-4<=i:
                 self.outputs.new(cIn.sockType, cIn.name)
                 continue
             
-            out=self.outputs[i+3]
+            out=self.outputs[i+4]
             
             if out.bl_idname!=cIn.sockType:
                 self.outputs.remove(out)
@@ -103,23 +102,28 @@ class ChainAttributeIn(BoneNode):
             if out.name!=cIn.name:
                 out.name=cIn.name
         
-        while len(self.customInputs)+3<len(self.outputs):
+        while len(self.customInputs)+4<len(self.outputs):
             self.outputs.remove(self.outputs[-1])
     
     def execute(self,context, socket, data):
         
         if self.outputs[0]==socket:
-            return data["armature"]
+            return self.attrName
+        
+        chain=data["chain"]
         
         if self.outputs[1]==socket:
-            return data["chain"].controllers
+            return chain.base.armature
         
         if self.outputs[2]==socket:
-            return data["chain"].base
+            return chain.controllers
         
-        for i in range(3,len(self.outputs)):
+        if self.outputs[3]==socket:
+            return chain.base
+        
+        for i in range(4,len(self.outputs)):
             if self.outputs[i]==socket:
-                return data["customInpGet"](i-3)
+                return data["customInpGet"](i-4)
         
         raise Exception("wat?")
     

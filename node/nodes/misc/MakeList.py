@@ -7,6 +7,7 @@ from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import (updateTrees,valChange)
+from ...BoneRef import (BoneRefList,BoneRef)
 
 class MakeList(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -127,10 +128,18 @@ class MakeList(BoneNode):
             
             res=execSocket(input, context, data)
             
+            if socket.bl_idname=="NodeSocketBoneList":
+                res=res.refs
+            elif socket.bl_idname=="NodeSocketBone":
+                res=[res]
+            
             if isinstance(res, list):
                 for e in res:
                     add(e)
             else:
                 add(res)
+        
+        if socket.bl_idname=="NodeSocketBoneList":
+            return BoneRefList(result)
         
         return result

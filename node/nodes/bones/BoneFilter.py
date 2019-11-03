@@ -2,11 +2,12 @@ import bpy
 import os
 
 from ... import BoneNode
-from ....utils import (makeId,execSocket)
+from ....utils import (makeId,execSocket,cacheResult)
 from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 class BoneFilter(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -42,7 +43,7 @@ class BoneFilter(BoneNode):
         self.outputs.new('NodeSocketBoneList', "Match Bones")
         self.outputs.new('NodeSocketBoneList', "Fail Bones")
         
-        self.getTree().links.new(self.inputs[0], self.outputs[0])
+        # self.getTree().links.new(self.inputs[0], self.outputs[0])
         
         self.resize()
         
@@ -81,10 +82,19 @@ class BoneFilter(BoneNode):
         
         bones=execSocket(self.inputs[0], context, data)
         
-        result=[]
+        if not bones or not bones.armature:
+            return bones
         
-        for b in bones:
-            if check(b[0])==match:
-                result.append(b)
+        tru=BoneRefList([])
+        tru.armature=bones.armature
         
-        return result
+        fal=BoneRefList([])
+        fal.armature=bones.armature
+        
+        for b in bones.refs:
+            (tru if check(b.name) else fal).refs.append(b)
+        
+        cacheResult(data, self, self.outputs[0], tru)
+        cacheResult(data, self, self.outputs[1], fal)
+        
+        return tru if match else fal

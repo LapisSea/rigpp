@@ -13,27 +13,37 @@ class ResolveChains(BoneNode):
     bl_label = 'Resolve chains'
     bl_icon = 'PLUS'
     
+    rules=[
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",0),
+            "list_agnostic": True, 
+            "accepted_types":["NodeSocketChainList"],
+            "default":"NodeSocketChainList"
+        }),
+        ("MIRROR_TYPE", {
+            "from": ("input",0),
+            "to": ("output",0)
+        }),
+    ]
+    
     def isTerminator(self):
         return True
+        
     
     def init(self, context):
         tree=self.getTree()
         tree.startMultiChange()
         
-        self.inputs.new('NodeSocketArmature', "Armature")
         self.inputs.new('NodeSocketChainList', "Chains")
-        self.outputs.new('NodeSocketArmature', "Armature")
+        self.outputs.new('NodeSocketChainList', "Chains")
         
         tree.endMultiChange()
         
     
     def execute(self,context, socket, data):
         
-        armature=execSocket(self.inputs[0], context, data)
-        if not armature:return armature
-        
-        chains=execSocket(self.inputs[1], context, data)
-        if not chains:return armature
+        chains=execSocket(self.inputs[0], context, data)
+        if not chains:return None
             
         tree=data["tree"]
         caches=data["run_cache"]
@@ -55,9 +65,8 @@ class ResolveChains(BoneNode):
             groupCache[id]=g
             return g
         
-        d=data.copy()
+        
         for chain in chains:
-            
             for attrNode in chain.attributes:
                 
                 cache=[None] * (len(attrNode.inputs)-1)
@@ -69,10 +78,11 @@ class ResolveChains(BoneNode):
                     return cache[pos]
                 
                 group=getGroup(attrNode.getId())
-                d["chain"]=chain
-                d["armature"]=armature
-                d["customInpGet"]=getIn
+                
+                d={**data, "chain":chain, "customInpGet": getIn}
+                d["run_cache"]={"outputs":{}}
+                
                 group.runGroup(context, d)
         
-        return armature
-    
+        
+        return chains

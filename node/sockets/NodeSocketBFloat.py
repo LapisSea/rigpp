@@ -60,3 +60,9 @@ class NodeSocketBFloat(BoneNodeSocket):
     def draw_color(self, context, node):
         return (161/256, 161/256, 161/256, 1)
     
+    
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None

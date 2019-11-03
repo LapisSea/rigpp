@@ -7,11 +7,14 @@ from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 def growParents(chains,useStart,useEnd, careForConnected, ammount):
     infinite=ammount==-1
+    ammountOrg=ammount
     
     for chain in chains:
+        ammount=ammountOrg
         if useStart:
             while infinite or ammount>0:
                 b=chain.base[0]
@@ -129,8 +132,8 @@ class ModifyChain(BoneNode):
             return None if single else []
         
         length=execSocket(self.inputs[3], context, data)
-        if length==0:
-            return None if single else []
+        if length==0 or self.mute:
+            return chains
         
         start=execSocket(self.inputs[1], context, data)
         end=execSocket(self.inputs[2], context, data)
@@ -141,16 +144,16 @@ class ModifyChain(BoneNode):
         if single:
             chains=[chains]
         
-        arm=chains[0].base[0][1]
+        armS=[c.base.armature for c in chains]
         
         for chain in chains:
-            chain.base=[arm.data.bones[b[0]] for b in chain.base]
+            chain.base=chain.base.getBones()
         
         
         modifiers.get(self.modType)(chains, start, end, length)
         
-        for chain in chains:
-            chain.base=[(b.name,arm) for b in chain.base]
+        for (arm,chain) in zip(armS, chains):
+            chain.base=BoneRefList.fromBones(arm,chain.base)
         
         if single:
             return chains[0]

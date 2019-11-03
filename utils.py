@@ -592,32 +592,30 @@ def objModeSession(obj,mode,session, *more):
     
     
     context.view_layer.objects.active = obj
-    
-    result=do(mode,session)
-    for i in range(int(len(more)/2)):
-        do(more[i*2], more[i*2+1])
-    
-    valids=['OBJECT', 'EDIT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT', 'POSE']
-    
-    if oldMode not in valids:
-        for valid in valids:
-            if oldMode.startswith(valid):
-                oldMode=valid
-                break
-    
-    if diffOb:
-        bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
-    if oldActive:
-        oldActive.select_set(state=True)
-        context.view_layer.objects.active = oldActive
-        bpy.ops.object.mode_set(mode=oldMode, toggle=False)
-    
+    try:
+        result=do(mode,session)
+        for i in range(int(len(more)/2)):
+            do(more[i*2], more[i*2+1])
+    finally:
+        valids=['OBJECT', 'EDIT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT', 'POSE']
+        
+        if oldMode not in valids:
+            for valid in valids:
+                if oldMode.startswith(valid):
+                    oldMode=valid
+                    break
+        
+        if diffOb:
+            bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
+        if oldActive:
+            oldActive.select_set(state=True)
+            context.view_layer.objects.active = oldActive
+            bpy.ops.object.mode_set(mode=oldMode, toggle=False)
     
     
     return result
 
-def execNode(node, socket, context, data):
-    
+def fetchCache(data, node, socket):
     cache=data["run_cache"]["outputs"]
     
     if node.name in cache:
@@ -627,8 +625,10 @@ def execNode(node, socket, context, data):
         if socket.identifier in sockets:
             return sockets[socket.identifier]
     
-    
-    result=node.execute(context, socket, data)
+    return None
+
+def cacheResult(data, node, socket, result):
+    cache=data["run_cache"]["outputs"]
     
     sockets=None
     if node.name in cache:
@@ -638,6 +638,24 @@ def execNode(node, socket, context, data):
         cache[node.name]=sockets
         
     sockets[socket.identifier if socket!=None else "__"]=result
+
+
+def execNode(node, socket, context, data):
+    
+    c=fetchCache(data, node, socket)
+    if c!=None:
+        return c
+    
+    result=None
+    try:
+        result=node.execute(context, socket, data)
+    except Exception as e:
+        node.select=True
+        import traceback
+        traceback.print_exc()
+        return None
+    
+    cacheResult(data, node, socket, result)
     
     return result
     
@@ -653,17 +671,6 @@ def execSocket(socket, context, data):
             return []
         return None
     
-    # if socket.bl_idname in ("NodeSocketInt","NodeSocketFloat","NodeSocketBool"):
-        
-    #     if socket.is_output:
-    #         return socket.node.execute(context, node, data)
-        
-    #     links=socket.links
-    #     if not links:
-    #         return socket.default_value
-            
-    #     link=socket.links[0]
-    #     return execNode(link.from_node, link.from_socket, context, tree)
     return socket.execute(context, data)
 
 import queue
@@ -671,6 +678,11 @@ from threading import Lock
 
 runQueue = queue.Queue()
 runMap = {}
+runQueue2 = []
+runMap2 = {}
+
+running=False
+
 __runmaplock = Lock()
 
 depsgraphList =[]
@@ -679,12 +691,18 @@ def runLater(fun,key=None):
     if key!=None:
         __runmaplock.acquire()
         if key not in runMap:
-            runMap[key]=fun
+            (runMap2 if running else runMap)[key]=fun
         __runmaplock.release()
     else:
-        runQueue.put(fun)
+        if running:
+            runQueue2.append(fun)
+        else: 
+            runQueue.put(fun)
 
 def queuedRun():
+    global running
+    running=True
+    
     if runMap:
         __runmaplock.acquire()
         for fun in runMap.values():
@@ -699,6 +717,17 @@ def queuedRun():
         except:
             import traceback
             traceback.print_exc()
+    
+    if runMap2:
+        runMap.update(runMap2)
+        runMap2.clear()
+    
+    if runQueue2:
+        for i in runQueue2:
+            runQueue.put(i)
+        runQueue2.clear()
+    
+    running=False
     return 1/60.0
 
 
@@ -716,6 +745,7 @@ def reg():
     bpy.app.handlers.depsgraph_update_post.append(depsgraphRun)
     bpy.app.timers.register(queuedRun)
     
+
 def dereg():
     try:
         bpy.app.handlers.depsgraph_update_post.remove(depsgraphRun)
@@ -775,3 +805,11 @@ def wrap(width, text):
         lines.append(line)
     
     return lines
+
+def getTree(context=None):
+    if context==None:
+        context=bpy.context
+    t=context.space_data.edit_tree
+    if not t:
+        raise Exception("no tree")
+    return t

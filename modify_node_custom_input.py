@@ -7,7 +7,8 @@ from . import_properties import *
 from . bone_shapes import *
 from .node.BoneNodeTree import updateTrees
 
-from .node.sockets.types.SocketReference import SocketReference
+from .node.sockets.types.SocketReference import (SocketReference,types)
+
 
 class RigPP_OT_AddNodeCustomInput(bpy.types.Operator):
     bl_idname = makeId("add_node_custom_input")
@@ -16,41 +17,47 @@ class RigPP_OT_AddNodeCustomInput(bpy.types.Operator):
     bl_options = {'UNDO',"REGISTER","INTERNAL"}
     
     caller: StringProperty()
-    doExec: BoolProperty(default=False)
     
-    new: PointerProperty(type=SocketReference)
+    def getTree(self):
+        return bpy.context.space_data.edit_tree
+    
+    def getNode(self):
+        return self.getTree().nodes[self.caller]
     
     @classmethod
     def poll(self, context):
         return True
     
+    sockType: EnumProperty(name="Type", items=types)
+    name: StringProperty(name="Name", default="")
+    
     def draw(self, context):
         
         self.layout.label(text="Select custom input name and type")
         
-        self.layout.prop(self.new,"name")
-        self.layout.prop(self.new,"sockType")
+        self.layout.prop(self,"name")
+        self.layout.prop(self,"sockType")
         
-        ok=self.layout.operator(self.bl_idname,text="Confirm")
-        ok.doExec=True
         
-        ok.new.name=self.new.name
-        ok.new.sockType=self.new.sockType
     
     def invoke(self, context, event):
-        if not self.doExec:
-            return context.window_manager.invoke_props_popup(self, event)
+        self.sockType=types[0][0]
+        self.name=""
+        
+        return context.window_manager.invoke_props_dialog(self)
+        
+    
+    def execute(self, context):
+        
+        caller=self.getNode()
+        
+        new=caller.customInputs.add()
+        new.sockType=self.sockType
+        new.name=self.name
+        
+        
         return {"FINISHED"}
 
-    def execute(self, context):
-        if self.doExec:
-            tree=self.getTree()
-            caller=tree.nodes[self.caller]
-            
-            updateTrees(self, context)
-            return {"FINISHED"}
-        
-        return {"CANCELLED"}
 
 class RigPP_OT_RemoveNodeCustomInput(bpy.types.Operator):
     bl_idname = makeId("remove_node_custom_input")
@@ -63,27 +70,47 @@ class RigPP_OT_RemoveNodeCustomInput(bpy.types.Operator):
     def getTree(self):
         return bpy.context.space_data.edit_tree
     
+    def getNode(self):
+        return self.getTree().nodes[self.caller]
+    
     @classmethod
     def poll(self, context):
+        
         return True
+    
+    def makeOptions(self,context):
+        caller=context.space_data.edit_tree.nodes[self.caller]
+        
+        return [(str(i), inp.name, "") for i, inp in enumerate(caller.customInputs)]
+    
+    option: EnumProperty(name="Option", items=makeOptions)
     
     def draw(self, context):
         
-        self.layout.label(text="Select custom input name and type")
-        self.layout.prop(self.nuw,"name")
-        self.layout.prop(self.nuw,"sockType")
+        self.layout.prop(self,"option", text="")
         
     
     def invoke(self, context, event):
-        tree=self.getTree()
-        caller=tree.nodes[self.caller]
+        try:
+            self.option="0"
+        except:
+            return {"CANCELLED"}
         
-        self.nuw=caller.customInputs.add()
-        updateTrees(self, context)
+        return context.window_manager.invoke_props_dialog(self, width=200)
         
-        return context.window_manager.invoke_props_popup(self, event)
-
+    
     def execute(self, context):
+        
+        tree=self.getTree()
+        tree.startMultiChange()
+        
+        caller=self.getNode()
+        
+        caller.customInputs.remove(int(self.option))
+        
+        tree.endMultiChange()
+        
+        
         return {"FINISHED"}
 
 actions=[

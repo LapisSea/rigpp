@@ -3,6 +3,7 @@ from bpy.types import Node,NodeSocket
 import nodeitems_utils
 from ..utils import (makeId,execNode,execSocket)
 import bpy
+from ..import_properties import *
 
 import sys
 sys.path.insert(0, '..')
@@ -12,7 +13,59 @@ class BoneNodeSocket(NodeSocket):
     bl_label = 'Bone Node Socket'
     display_shape="DIAMOND"
     
+    
+    def draw(self, context, layout, node, text):
+        
+        def doText():
+            
+            tree=context.space_data.edit_tree
+            
+            if hasattr(tree,"run_cache"):
+                run_cache=tree.run_cache
+                try:
+                    data=run_cache["outputs"][node.name][self.identifier]
+                    if data!=None:
+                        
+                        return text + getattr(self, "customText", str)(data)
+                except:
+                    pass
+            
+            return text
+        
+        def drawPropDefault(lay, tex):
+            lay.prop(self, "value", text=tex)
+        
+        if hasattr(self,"selfTerminator") and self.selfTerminator:
+            # print(self.selfTerminator)
+            getattr(self,"drawProp",drawPropDefault)(layout, doText())
+        elif self.is_output:
+            layout.label(text=doText())
+        elif self.is_linked:
+            layout.label(text=text)
+        else:
+            getattr(self,"drawProp",drawPropDefault)(layout, doText())
+    
     def execute(self,context, data):
+        
+        getV=None
+        if hasattr(self,"getValue"):
+            getV=self.getValue
+        elif hasattr(self,"value"):
+            getV=lambda:self.value
+        else:
+            def crash():
+                raise Exception("can't get value in "+self.name)
+            getV=crash
+        
+        
+        if not self.is_linked:
+            if self.is_output:
+                if self.selfTerminator:
+                    return getV()
+                return None
+            else:
+                return getV()
+        
         if self.is_output:
             return execNode(self.node,self,context,data)
         
@@ -27,12 +80,12 @@ class BoneNodeSocketList(NodeSocket):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.display_shape="DIAMOND"
+        listShape="DIAMOND"
+        if self.display_shape!=listShape:
+            self.display_shape=listShape
     
     def draw(self, context, layout, node, text):
         def doText():
-            if self.is_output:
-                return text
             
             tree=context.space_data.edit_tree
             
@@ -73,6 +126,7 @@ class BoneNode(Node):
                 listAgnostic=data.get("list_agnostic",False)
                 acceptedTypes=data["accepted_types"] if "accepted_types" in data else None
                 default=data.get("default",None)
+                autoRename=data.get("auto_rename",True)
                 
                 if callable(target):
                     target=target(self)
@@ -119,8 +173,23 @@ class BoneNode(Node):
                 
                 
                 if socketType!=None:
+                    
                     c=self.setIOType(sockets, index, socketType)
                     if c:
+                        if autoRename:
+                            n=sockets[index].name
+                            
+                            hasS=n.endswith("s")
+                            
+                            if socketType.endswith("List"):
+                                if not hasS:
+                                    n+="s"
+                            else:
+                                if hasS:
+                                    n=n[:-1]
+                            
+                            sockets[index].name=n
+                        
                         changed[0]=True
             
             
@@ -201,7 +270,6 @@ class BoneNode(Node):
                         
                         c=self.setIOType(toSocks,index, typ)
                         if c:
-                            print(changed)
                             changed[0]=True
                 
                 if isinstance(toL,list):

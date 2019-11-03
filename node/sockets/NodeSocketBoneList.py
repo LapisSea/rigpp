@@ -4,6 +4,7 @@ from bpy.types import NodeTree, Node, NodeSocket
 from ...import_properties import *
 from bpy.types import Bone
 from ...utils import (execNode,execSocket)
+from ..BoneRef import (BoneRefList,BoneRef)
 
 from .. import (BoneNodeSocket,BoneNodeSocketList)
 
@@ -21,3 +22,12 @@ class NodeSocketBoneList(BoneNodeSocketList):
         else:
             return None
     
+    def execute(self,context, data):
+        if self.is_output:
+            return execNode(self.node,self,context,data)
+        
+        links=self.links
+        if not links:
+            return BoneRefList([])
+        
+        return execSocket(links[0].from_socket, context,data)

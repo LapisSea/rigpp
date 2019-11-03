@@ -9,6 +9,7 @@ from ...sockets.types.NameFilter import NameFilter
 
 from ...BoneChain import BoneChain
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 def doParents(bones,connectedDontCare):
     result=[]
@@ -85,6 +86,20 @@ class MakeChains(BoneNode):
     bl_label = 'Make chains'
     bl_icon = 'PLUS'
     
+    
+    rules=[
+        ("ADDAPTIVE_SOCKET", {
+            "target":("input",0),
+            "list_agnostic": True, 
+            "accepted_types":["NodeSocketBone"],
+            "default":"NodeSocketBoneList"
+        }),
+        ("MIRROR_IS_LIST", {
+            "from": ("input",0),
+            "to": ("output",0)
+        }),
+    ]
+    
     constructionType: EnumProperty(name="Construction Type",items=constructionTypes, default=constructionTypes[0][0], update=valChange)
     
     def init(self, context):
@@ -98,17 +113,28 @@ class MakeChains(BoneNode):
         
     
     def draw_buttons(self, context, layout):
-        layout.prop(self,"constructionType", text="")
+        if self.inputs[0].bl_idname.endswith("List"):
+            layout.prop(self,"constructionType", text="")
     
     def execute(self,context, socket, data):
         bones=execSocket(self.inputs[0], context, data)
         if not bones:
-            return []
+            return bones
         
-        chains=constructioneers.get(self.constructionType)([b[1].data.bones[b[0]] for b in bones])
+        if isinstance(bones, BoneRef):
+            chain=BoneChain()
+            chain.base=BoneRefList([bones])
+            return chain
         
-        arm=bones[0][1]
+        chains=constructioneers.get(self.constructionType)(bones.getBones())
+        
         for chain in chains:
-            chain.base=[(b.name,arm) for b in chain.base]
+            chain.base=BoneRefList.fromBones(bones.armature, chain.base)
         
         return chains
+    
+    def draw_label(self):
+        if self.inputs[0].bl_idname.endswith("List"):
+            return self.bl_label
+        else:
+            return "Make chain"

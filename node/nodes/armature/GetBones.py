@@ -7,6 +7,7 @@ from ....import_properties import *
 
 from ...sockets.types.NameFilter import NameFilter
 from ...BoneNodeTree import valChange
+from ...BoneRef import (BoneRefList,BoneRef)
 
 class GetBones(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -26,6 +27,8 @@ class GetBones(BoneNode):
     def execute(self,context, socket, data):
         obj=execSocket(self.inputs[0], context, data)
         if obj==None:
-            return []
+            l=BoneRefList([])
+            l.armature=obj
+            return l
         
-        return [(b.name,obj) for b in obj.data.bones]
+        return BoneRefList([BoneRef(obj, b.name) for b in obj.data.bones])

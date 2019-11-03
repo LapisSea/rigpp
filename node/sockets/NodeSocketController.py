@@ -34,3 +34,9 @@ class NodeSocketController(NodeSocket):
             
         link=self.links[0]
         return execNode(link.from_node, link.from_socket, context, tree)
+    
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None

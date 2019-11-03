@@ -16,7 +16,8 @@ class DebugDisplay(BoneNode):
     rules=[
         ("ADDAPTIVE_SOCKET", {
             "target":("input",0),
-            "default":"NodeSocketAny"
+            "default":"NodeSocketAny",
+            "auto_rename":False
         }),
     ]
     

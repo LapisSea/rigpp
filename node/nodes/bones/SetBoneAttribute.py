@@ -7,14 +7,11 @@ from ....import_properties import *
 from ...BoneNodeTree import valChange
 
 from ...sockets.types.NameFilter import NameFilter
+from ...BoneRef import (BoneRefList,BoneRef)
 
 attributes=[]
 attributeTypes={}
 
-def _scrape0(scene):
-    offDepsgraph(_scrape0)
-    _scrape()
-    
 def _scrape():
     if attributes:
         return
@@ -28,7 +25,7 @@ def _scrape():
     context.scene.collection.objects.link(obj)
     try:
         
-        def do(armature):
+        def EDIT(armature):
             bone=armature.data.edit_bones.new("bone")
             
             keys=[]
@@ -45,23 +42,50 @@ def _scrape():
                 attributes.append((k," ".join([s.capitalize() for s in k.split("_")]),""))
                 
                 if typ:
-                    typ="NodeSocketB"+typ.capitalize()
+                    if typ=="bpy_prop_array":
+                        typ=val[0].__class__.__name__.capitalize()+"List"
+                    else:
+                        typ=typ.capitalize()
+                    
+                    typ="NodeSocketB"+typ
                 
                 attributeTypes[k]=typ
         
-        objModeSession( obj, "EDIT", do)
+        
+        objModeSession( obj, "EDIT", EDIT)
         
     finally:
         context.scene.collection.objects.unlink(obj)
         bpy.data.objects.remove(obj)
         bpy.data.armatures.remove(arm)
+
+
+def _scrape0(scene):
+    try:
+        offDepsgraph(_scrape0)
+    except:pass
     
+    _scrape()
 
-onDepsgraph(_scrape0)
 
-def fuc():
+def causeDepsgraph():
+    try:
+        offDepsgraph(_scrape0)
+    except:
+        pass
+    
+    if attributes:
+        return
+    
+    runLater(causeDepsgraph)
+    onDepsgraph(_scrape0)
+    
+    # print("Causing Depsgraph")
     bpy.context.scene.gravity=bpy.context.scene.gravity
-runLater(fuc)
+    
+    return 0
+
+runLater(causeDepsgraph)
 
 class SetBoneAttribute(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
@@ -93,7 +117,7 @@ class SetBoneAttribute(BoneNode):
     
     def updateVal(self):
         typ=self.getAttribType()
-            
+        
         if len(self.inputs)<2:
             self.inputs.new(name="Value", type=typ)
         else:
@@ -135,23 +159,19 @@ class SetBoneAttribute(BoneNode):
             return None if single else []
         
         if single:
-            bones=[bones]
+            bones=BoneRefList([bones])
         
         value=execSocket(self.inputs[1], context, data)
         
         def do(armature):
             ebs=armature.data.edit_bones
-            for i in range(len(bones)):
-                bone=bones[i]
+            for bone in bones.refs:
                 if bone:
-                    eb=ebs[bone[0]]
+                    eb=bone.getEditBone()
                     setattr(eb,self.attr,value)
-                    bones[i]=(eb.name,armature)
+                    bone.name=eb.name
         
-        b=next(bo for bo in bones if bo!=None)
-        armature=b[1]
-        
-        objModeSession(armature,"EDIT",do)
+        objModeSession(bones.armature,"EDIT",do)
         
         if single:
             return bones[0]

@@ -17,7 +17,6 @@ class NodeSocketBBool(BoneNodeSocket):
     
     value: BoolProperty(name="value", update=valChange)
     
-    
     def draw(self, context, layout, node, text):
         if self.is_output:
             layout.label(text=text)
@@ -26,6 +25,11 @@ class NodeSocketBBool(BoneNodeSocket):
         else:
             layout.prop(self, "value", text=text)
 
-    # Socket color
     def draw_color(self, context, node):
         return (178/256, 106/256, 48/256, 1)
+    
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None

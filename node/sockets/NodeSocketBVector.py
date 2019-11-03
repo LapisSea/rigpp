@@ -15,8 +15,7 @@ class NodeSocketBVector(NodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
-    selfTerminator:BoolProperty()
-    
+    selfTerminator: BoolProperty()
     value: FloatVectorProperty(name="value", subtype="XYZ", update=valChange)
     
     def draw(self, context, layout, node, text):
@@ -49,20 +48,12 @@ class NodeSocketBVector(NodeSocket):
         else:
             drawVal()
 
-    # Socket color
     def draw_color(self, context, node):
         return (99/256, 99/256, 199/256, 1)
     
     
-    def execute(self,context, data):
-        if self.selfTerminator:
-            return self.value
-        
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return self.value
-        
-        return execSocket(links[0].from_socket, context,data)
+    def getCastExplicit(self,target):
+        if target.bl_idname==self.bl_idname+"List":
+            return "MakeList"
+        else:
+            return None
