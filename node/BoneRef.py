@@ -31,6 +31,18 @@ class BoneRef():
         except KeyError as e:
             return None
     
+    def __iter__(self):
+        this=self
+        class iter:
+            i=0
+            def __next__(self):
+                if self.i>=len(this):
+                    raise StopIteration
+                r=this[self.i]
+                self.i+=1
+                return r
+        return iter()
+    
     def __getitem__(self, i):
         if i!=0:
             raise Exception()
@@ -81,3 +93,15 @@ class BoneRefList():
     
     def __len__(self):
         return len(self.refs)
+    
+    def __iter__(self):
+        this=self
+        class iter:
+            i=0
+            def __next__(self):
+                if self.i>=len(this):
+                    raise StopIteration
+                r=this[self.i]
+                self.i+=1
+                return r
+        return iter()

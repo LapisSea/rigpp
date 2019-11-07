@@ -121,16 +121,16 @@ class MakeList(BoneNode):
                 if e not in result:
                     result.append(e)
         
-        for input in self.inputs:
+        for inp in self.inputs:
             
-            if not input.is_linked:
+            if not inp.is_linked:
                 continue
             
-            res=execSocket(input, context, data)
+            res=execSocket(inp, context, data)
             
-            if socket.bl_idname=="NodeSocketBoneList":
+            if inp.bl_idname=="NodeSocketBoneList":
                 res=res.refs
-            elif socket.bl_idname=="NodeSocketBone":
+            elif inp.bl_idname=="NodeSocketBone":
                 res=[res]
             
             if isinstance(res, list):

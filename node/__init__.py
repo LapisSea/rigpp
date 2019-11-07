@@ -22,13 +22,25 @@ class BoneNodeSocket(NodeSocket):
             
             if hasattr(tree,"run_cache"):
                 run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data!=None:
-                        
-                        return text + getattr(self, "customText", str)(data)
-                except:
-                    pass
+                
+                def fetch(data):
+                    try:
+                        return data[node.name][self.identifier]
+                    except:
+                        return None
+                
+                data=fetch(run_cache["outputs"])
+                if data==None:
+                    try:
+                        for group in run_cache["group_outputs"].values():
+                            data=fetch(group)
+                            if data!=None:
+                                break
+                    except:
+                        pass
+                
+                if data!=None:
+                    return text + getattr(self, "customText", str)(data)
             
             return text
         

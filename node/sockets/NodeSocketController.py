@@ -8,7 +8,7 @@ from ...utils import execNode
 from .. import (BoneNodeSocket,BoneNodeSocketList)
 
 
-class NodeSocketController(NodeSocket):
+class NodeSocketController(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Controllers Node Socket'
     

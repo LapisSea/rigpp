@@ -24,6 +24,7 @@ TREE_ID=makeId("bone_node_tree")
 def valChange(self,ctx):
     for g in bpy.data.node_groups:
         if g.bl_idname == TREE_ID:
+            g.update()
             g.autoExec()
 
 def updateTrees(self=None,context=None):
@@ -438,8 +439,9 @@ class BoneNodeTree(NodeTree):
             data={
                 "tree":self,
                 "run_cache":{
-                    "outputs":{}
-                }
+                    "outputs":{},
+                    "group_outputs":{},
+                },
             }
             
             startCandidates=self.nodes

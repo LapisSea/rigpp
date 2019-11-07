@@ -11,9 +11,9 @@ from ...BoneRef import (BoneRefList,BoneRef)
 
 from ....data_scrape import editBoneAttrs
 
-class SetBoneAttribute(BoneNode):
+class GetBoneAttribute(BoneNode):
     bl_idname = makeId(os.path.basename(__file__)[:-3])
-    bl_label = 'Set bone attribute'
+    bl_label = 'Get bone attribute'
     bl_icon = 'PLUS'
     
     def getAttribType(self):
@@ -27,35 +27,25 @@ class SetBoneAttribute(BoneNode):
             "default":"NodeSocketBone"
         }),
         ("ADDAPTIVE_SOCKET", {
-            "target":("input",1),
+            "target":("output",0),
             "list_agnostic": True, 
             "accepted_types":lambda self:[self.getAttribType()],
-            "default":lambda self:editBoneAttrs["types"][self.attr]
+            "default": getAttribType
         }),
-        ("MIRROR_TYPE", {
+        ("MIRROR_IS_LIST", {
             "from": ("input",0),
             "to": ("output",0)
         }),
     ]
     
-    def updateVal(self):
-        typ=self.getAttribType()
-        
-        if len(self.inputs)<2:
-            self.inputs.new(name="Value", type=typ)
-        else:
-            self.setIOType(self.inputs,1, typ)
-    
-    def change(self,ctx):
-        self.updateVal()
-        
+    def attrChange(self,ctx):
+        print(self.getAttribType())
         valChange(self,ctx)
     
-    attr: EnumProperty(items=lambda s,c: editBoneAttrs["enums"], name="Attribute", update=change)
+    attr: EnumProperty(items=lambda s,c: editBoneAttrs["enums"], name="Attribute", update=attrChange)
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"attr",text="")
-    
     
     def init(self, context):
         
@@ -63,9 +53,7 @@ class SetBoneAttribute(BoneNode):
         tree.startMultiChange()
         
         self.inputs.new("NodeSocketBone", "Bones")
-        self.inputs.new("NodeSocketAny", "Value")
-        self.outputs.new("NodeSocketBone", "Bones")
-        self.change(context)
+        self.outputs.new("NodeSocketAny", "Value")
         
         tree.endMultiChange()
         
@@ -73,25 +61,24 @@ class SetBoneAttribute(BoneNode):
     def execute(self,context, socket,data):
         
         bones=execSocket(self.inputs[0], context, data)
-        single=socket.bl_idname=="NodeSocketBone"
+        
+        
+        single=not socket.bl_idname.endswith("List")
         if not bones:
             return None if single else []
         
-        if single:
-            bones=BoneRefList([bones])
-        
-        value=execSocket(self.inputs[1], context, data)
+        data=[]
         
         def do(armature):
-            ebs=armature.data.edit_bones
-            for bone in bones.refs:
+            for bone in bones:
                 if bone:
                     eb=bone.getEditBone()
-                    setattr(eb,self.attr,value)
-                    bone.name=eb.name
+                    import copy
+                    data.append(copy.deepcopy(getattr(eb,self.attr)))
         
         objModeSession(bones.armature,"EDIT",do)
         
+        
         if single:
-            return bones[0]
-        return bones
+            return data[0]
+        return data

@@ -56,7 +56,7 @@ class ResolveChains(BoneNode):
         def getGroup(id):
             if id in groupCache:
                 return groupCache[id]
-                
+            
             g=tree.findNode("ChainAttributeIn",lambda nod:nod.id==id)
             
             if not g:
@@ -67,6 +67,7 @@ class ResolveChains(BoneNode):
         
         
         for chain in chains:
+            
             for attrNode in chain.attributes:
                 
                 cache=[None] * (len(attrNode.inputs)-1)
@@ -77,10 +78,13 @@ class ResolveChains(BoneNode):
                     
                     return cache[pos]
                 
-                group=getGroup(attrNode.getId())
+                groupId=attrNode.getId()
+                group=getGroup(groupId)
+                opCache={}
                 
+                data["run_cache"]["group_outputs"][groupId]=opCache
                 d={**data, "chain":chain, "customInpGet": getIn}
-                d["run_cache"]={"outputs":{}}
+                d["run_cache"]={"outputs":opCache}
                 
                 group.runGroup(context, d)
         
