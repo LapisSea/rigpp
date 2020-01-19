@@ -30,7 +30,7 @@ class SetBoneAttribute(BoneNode):
             "target":("input",1),
             "list_agnostic": True, 
             "accepted_types":lambda self:[self.getAttribType()],
-            "default":lambda self:editBoneAttrs["types"][self.attr]
+            "default"       :lambda self:self.getAttribType()
         }),
         ("MIRROR_TYPE", {
             "from": ("input",0),
@@ -51,7 +51,12 @@ class SetBoneAttribute(BoneNode):
         
         valChange(self,ctx)
     
-    attr: EnumProperty(items=lambda s,c: editBoneAttrs["enums"], name="Attribute", update=change)
+    def getItems(self,ctx):
+        es=editBoneAttrs["enums"]
+        # print(es[0])
+        return es
+    
+    attr: EnumProperty(items=getItems, name="Attribute", update=change)
     
     def draw_buttons(self, context, layout):
         layout.prop(self,"attr",text="")
@@ -82,12 +87,21 @@ class SetBoneAttribute(BoneNode):
         
         value=execSocket(self.inputs[1], context, data)
         
+        singleVal=not self.inputs[1].bl_idname.endswith("List")
+        
+        
+        if singleVal: value=[value]
+        
         def do(armature):
             ebs=armature.data.edit_bones
-            for bone in bones.refs:
+            for i, bone in enumerate(bones.refs):
                 if bone:
                     eb=bone.getEditBone()
-                    setattr(eb,self.attr,value)
+                    
+                    val=value[i%len(value)]
+                    
+                    setattr(eb,self.attr,val)
+                    
                     bone.name=eb.name
         
         objModeSession(bones.armature,"EDIT",do)

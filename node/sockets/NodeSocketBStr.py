@@ -11,7 +11,7 @@ import sys
 
 from .. import (BoneNodeSocket,BoneNodeSocketList)
 
-class NodeSocketBStr(NodeSocket):
+class NodeSocketBStr(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
@@ -19,33 +19,6 @@ class NodeSocketBStr(NodeSocket):
     
     value: StringProperty(name="value", update=valChange, options={"TEXTEDIT_UPDATE"})
     
-    def draw(self, context, layout, node, text):
-        def doText():
-            tree=context.space_data.edit_tree
-            
-            if hasattr(tree,"run_cache"):
-                run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data!=None:
-                        return text + " ({0:.3f}, {1:.3f}, {2:.3f})".format(data.x,data.y,data.z)
-                except:
-                    pass
-            
-            return text
-        
-        def drawVal():
-            layout.prop(self, "value",text="")
-        
-        if self.selfTerminator:
-            drawVal()
-        elif self.is_output:
-            layout.label(text=doText())
-        elif self.is_linked:
-            layout.label(text=text)
-        else:
-            drawVal()
-
     # Socket color
     def draw_color(self, context, node):
         return (99/256, 99/256, 199/256, 1)

@@ -66,7 +66,7 @@ class BoneNodeSocket(NodeSocket):
             getV=lambda:self.value
         else:
             def crash():
-                raise Exception("can't get value in "+self.name)
+                raise Exception("can't get value in "+self.name+" "+str(self))
             getV=crash
         
         
@@ -328,8 +328,9 @@ class BoneNode(Node):
         socks=[e.to_socket if isOut else e.from_socket for e in inp.links]
         
         tree=self.getTree()
+        alreadyStarted=tree.blockUpdates
         
-        tree.startMultiChange()
+        if not alreadyStarted: tree.startMultiChange()
         
         
         sockets.remove(inp)
@@ -347,7 +348,7 @@ class BoneNode(Node):
             else:
                 tree.links.new(socket,new)
         
-        tree.endMultiChange()
+        if not alreadyStarted: tree.endMultiChange()
         
         return True
 

@@ -274,126 +274,119 @@ class BoneNodeTree(NodeTree):
             # print("INFO: Blocked update")
             return
         
-        if self.name not in bpy.data.node_groups:
-            print("DEB: Tree "+self.name+" not in bpy.data.node_groups, refusing to update")
-            return
-        
-        selfAvare=False
-        try:
-            selfAvare=bpy.context.space_data.edit_tree==self
-        except:
-            pass
-        
-        
-        if not selfAvare:
-            
-            def makeContext():
-                for window in bpy.context.window_manager.windows:
-                    for screen in window.workspace.screens:
-                        for area in screen.areas:
-                            for space in area.spaces:
-                                if isinstance(space, bpy.types.SpaceNodeEditor):
-                                    if space.edit_tree==self:
-                                        return {
-                                            'window': window, 
-                                            'screen': screen,
-                                            'area': area, 
-                                            'space': space, 
-                                            'edit_tree': space.edit_tree
-                                        }
-            ctx=makeContext()
-            if ctx:
-                bpy.ops.rigpp.update_bone_tree({**bpy.context.copy(), **ctx})
-            else:
-                print("failed to emulate tree context")
-            return
-        
-        
         if self.updateCount>0:
             return
         
         self.updateCount+=1
-        
-        
-        if hasattr(self,"node_cache"):
-            del self.node_cache
-        
-        change=True
-        maxIter=200
-        limit=maxIter
-        
-        for node in self.nodes:
-            if not isinstance( node,bpy.types.NodeReroute):
-                continue
+        try:
+            if self.name not in bpy.data.node_groups:
+                print("DEB: Tree "+self.name+" not in bpy.data.node_groups, refusing to update")
+                return
             
-            reroute=node
-            inputs=reroute.inputs
-            outputs=reroute.outputs
+            selfAvare=False
+            try:
+                selfAvare=bpy.context.space_data.edit_tree==self
+            except:
+                pass
             
-            def apply(l):
+            
+            if not selfAvare:
                 
-                if l.bl_idname in ("NodeSocketColor", inputs[0].bl_idname):
-                    return False
+                def makeContext():
+                    for window in bpy.context.window_manager.windows:
+                        for screen in window.workspace.screens:
+                            for area in screen.areas:
+                                for space in area.spaces:
+                                    if isinstance(space, bpy.types.SpaceNodeEditor):
+                                        if space.edit_tree==self:
+                                            return {
+                                                'window': window, 
+                                                'screen': screen,
+                                                'area': area, 
+                                                'space': space, 
+                                                'edit_tree': space.edit_tree
+                                            }
+                ctx=makeContext()
+                if ctx:
+                    bpy.ops.rigpp.update_bone_tree({**bpy.context.copy(), **ctx})
+                else:
+                    print("failed to emulate tree context")
+                return
+            
+            
+            
+            if hasattr(self,"node_cache"):
+                del self.node_cache
+            
+            change=True
+            maxIter=200
+            limit=maxIter
+            
+            for node in self.nodes:
+                if not isinstance( node,bpy.types.NodeReroute):
+                    continue
                 
-                ins=[s.from_socket for s in inputs[0].links]
-                inputs.clear()
-                ous=[s.to_socket for s in outputs[0].links]
-                outputs.clear()
+                reroute=node
+                inputs=reroute.inputs
+                outputs=reroute.outputs
                 
-                newIn=inputs.new(l.bl_idname,l.name)
-                newOu=outputs.new(l.bl_idname,l.name)
-                
-                for s in ins:
-                    self.links.new(s,newIn)
-                
-                for s in ous:
-                    self.links.new(newOu,s)
+                def apply(l):
                     
-                return True
-            
-            
-            inL=inputs[0].links
-            
-            if inL:
-                if apply(inL[0].from_socket):
-                    continue
+                    if l.bl_idname in ("NodeSocketColor", inputs[0].bl_idname):
+                        return False
+                    
+                    ins=[s.from_socket for s in inputs[0].links]
+                    inputs.clear()
+                    ous=[s.to_socket for s in outputs[0].links]
+                    outputs.clear()
+                    
+                    newIn=inputs.new(l.bl_idname,l.name)
+                    newOu=outputs.new(l.bl_idname,l.name)
+                    
+                    for s in ins:
+                        self.links.new(s,newIn)
+                    
+                    for s in ous:
+                        self.links.new(newOu,s)
+                        
+                    return True
                 
-            outL=outputs[0].links
+                
+                inL=inputs[0].links
+                
+                if inL:
+                    if apply(inL[0].from_socket):
+                        continue
+                    
+                outL=outputs[0].links
+                
+                if outL:
+                    if apply(outL[0].to_socket):
+                        continue
+                
+                
+                
             
-            if outL:
-                if apply(outL[0].to_socket):
-                    continue
+            while change and limit>0:
+                limit-=1
+                change=False
+                
+                for n in reversed(self.nodes):
+                    c=self._updateRules(n)
+                    if c:
+                        change=True
             
-            
-            
-        
-        while change and limit>0:
-            limit-=1
-            change=False
+            self.validateLinks()
             
             for n in reversed(self.nodes):
-                c=self._updateRules(n)
-                if c:
-                    change=True
-        
-        self.validateLinks()
-        
-        for n in reversed(self.nodes):
-            if hasattr(n, "update"):
-                n.update()
-        
-        self.groupFlow()
-        
-        self.updateCount-=1
-        
-        if self.updateCount>0:
-            def upd():
-                self.update()
-            runLater(upd)
-        
-        self.updateCount=0
-        
-        self.autoExec()
+                if hasattr(n, "update"):
+                    n.update()
+            
+            self.groupFlow()
+            
+            self.autoExec()
+        finally:
+            self.updateCount=0
     
     def get_cached(self,name, generator):
         caches=None
@@ -434,6 +427,7 @@ class BoneNodeTree(NodeTree):
         
         self.update()
         
+        print("Executing...")
         
         try:
             data={

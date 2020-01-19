@@ -12,7 +12,6 @@ class NodeSocketChain(BoneNodeSocket):
     bl_label = 'Bone Chain Node Socket'
     
     
-    
     def draw(self, context, layout, node, text):
         layout.label(text=text)
 
@@ -27,6 +26,3 @@ class NodeSocketChain(BoneNodeSocket):
         else:
             return None
     
-    
-    # def execute(self,context, data):
-    #     self.display_shape="CUBE"

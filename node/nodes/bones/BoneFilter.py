@@ -61,14 +61,14 @@ class BoneFilter(BoneNode):
         
         layout.separator()
     
-    def draw_label(self):
-        if self.hide:
-            if self.value=="":
-                return "<VALUE EMPTY>"
-            else:
-                return ".?"+self.value+".?"
-        else:
-            return self.bl_label
+    # def draw_label(self):
+    #     if self.hide:
+    #         if self.value=="": # reimpl this
+    #             return "<VALUE EMPTY>"
+    #         else:
+    #             return ".?"+self.value+".?"
+    #     else:
+    #         return self.bl_label
     
     def execute(self,context, socket, data):
         

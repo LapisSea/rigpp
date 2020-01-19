@@ -12,6 +12,9 @@ class NodeSocketBone(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
+    def getValue(self):
+        return None
+    
     def draw(self, context, layout, node, text):
         def doText():
             tree=context.space_data.edit_tree
@@ -28,7 +31,7 @@ class NodeSocketBone(BoneNodeSocket):
             return text
             
         layout.label(text=doText())
-
+    
     # Socket color
     def draw_color(self, context, node):
         return (0.4, 1, 1, 1)
