@@ -11,9 +11,6 @@ class NodeSocketAny(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Any Node Socket'
     
-    def getValue(self):
-        return None
-    
     def draw(self, context, layout, node, text):
         layout.label(text=text)
 

@@ -45,7 +45,10 @@ class BoneNodeSocket(NodeSocket):
             return text
         
         def drawPropDefault(lay, tex):
-            lay.prop(self, "value", text=tex)
+            if "value" in self:
+                lay.prop(self, "value", text=tex)
+            else:
+                lay.label(text=tex)
         
         if hasattr(self,"selfTerminator") and self.selfTerminator:
             # print(self.selfTerminator)
@@ -65,9 +68,7 @@ class BoneNodeSocket(NodeSocket):
         elif hasattr(self,"value"):
             getV=lambda:self.value
         else:
-            def crash():
-                raise Exception("can't get value in "+self.name+" "+str(self))
-            getV=crash
+            getV=lambda: None
         
         
         if not self.is_linked:

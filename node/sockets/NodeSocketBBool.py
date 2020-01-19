@@ -17,14 +17,9 @@ class NodeSocketBBool(BoneNodeSocket):
     
     value: BoolProperty(name="value", update=valChange)
     
-    def draw(self, context, layout, node, text):
-        if self.is_output:
-            layout.label(text=text)
-        elif self.is_linked:
-            layout.label(text=text)
-        else:
-            layout.prop(self, "value", text=text)
-
+    def drawProp(self, layout, text):
+        layout.prop(self, "value", text=text)
+    
     def draw_color(self, context, node):
         return (178/256, 106/256, 48/256, 1)
     

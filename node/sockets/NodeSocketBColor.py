@@ -11,7 +11,9 @@ import sys
 
 import mathutils
 
-class NodeSocketBColor(NodeSocket):
+from .. import (BoneNodeSocket,BoneNodeSocketList)
+
+class NodeSocketBColor(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Bone Node Socket'
     
@@ -19,32 +21,15 @@ class NodeSocketBColor(NodeSocket):
     
     value: FloatVectorProperty(name="value", subtype="COLOR",size=4, update=valChange,min=0, max=1, default=(1,1,1,1))
     
-    def draw(self, context, layout, node, text):
-        def doText():
-            tree=context.space_data.edit_tree
-            
-            if hasattr(tree,"run_cache"):
-                run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data!=None:
-                        return text + " ("+str(data) + ")"
-                except:
-                    pass
-            
-            return text
+
+    def drawProp(self, layout, text):
         if self.selfTerminator:
             l=layout.column()
             l.template_color_picker(self, "value",value_slider=True)
             l.prop(self, "value", text="")
-        elif self.is_output:
-            layout.label(text=doText())
-        elif self.is_linked:
-            layout.label(text=text)
         else:
             layout.prop(self, "value", text=text)
-
-    # Socket color
+        
     def draw_color(self, context, node):
         return (199/256, 199/256, 41/256, 1)
     

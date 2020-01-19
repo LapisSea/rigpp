@@ -15,24 +15,6 @@ class NodeSocketBone(BoneNodeSocket):
     def getValue(self):
         return None
     
-    def draw(self, context, layout, node, text):
-        def doText():
-            tree=context.space_data.edit_tree
-            
-            if hasattr(tree,"run_cache"):
-                run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data:
-                        return data[1].name +" → "+data[0]
-                except:
-                    pass
-            
-            return text
-            
-        layout.label(text=doText())
-    
-    # Socket color
     def draw_color(self, context, node):
         return (0.4, 1, 1, 1)
         

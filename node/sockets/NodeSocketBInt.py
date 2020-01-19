@@ -33,30 +33,9 @@ class NodeSocketBInt(BoneNodeSocket):
     
     value: IntProperty(name="value", set=_setval, get=_getval)
     
+    def drawProp(self, layout, text):
+        layout.prop(self, "value", text=text)
     
-    def draw(self, context, layout, node, text):
-        def doText():
-            tree=context.space_data.edit_tree
-            
-            if hasattr(tree,"run_cache"):
-                run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data!=None:
-                        return text + " ("+str(data) + ")"
-                except:
-                    pass
-            
-            return text
-        
-        if self.is_output:
-            layout.label(text=doText())
-        elif self.is_linked:
-            layout.label(text=text)
-        else:
-            layout.prop(self, "value", text=text)
-
-    # Socket color
     def draw_color(self, context, node):
         return (15/256, 133/256, 38/256, 1)
     

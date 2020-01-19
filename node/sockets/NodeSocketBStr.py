@@ -19,23 +19,15 @@ class NodeSocketBStr(BoneNodeSocket):
     
     value: StringProperty(name="value", update=valChange, options={"TEXTEDIT_UPDATE"})
     
-    # Socket color
+    def drawProp(self, layout, text):
+        if self.selfTerminator:
+            layout.prop(self, "value", text="")
+        else:
+            layout.prop(self, "value", text=text)
+    
     def draw_color(self, context, node):
         return (99/256, 99/256, 199/256, 1)
     
-    
-    def execute(self,context, data):
-        if self.selfTerminator:
-            return self.value
-        
-        if self.is_output:
-            return execNode(self.node,self,context,data)
-        
-        links=self.links
-        if not links:
-            return self.value
-        
-        return execSocket(links[0].from_socket, context,data)
     
     def getCastExplicit(self,target):
         if target.bl_idname==self.bl_idname+"List":

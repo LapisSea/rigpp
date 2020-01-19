@@ -34,29 +34,9 @@ class NodeSocketBFloat(BoneNodeSocket):
     value: FloatProperty(name="value", set=_setval, get=_getval)
     
     
-    def draw(self, context, layout, node, text):
-        def doText():
-            tree=context.space_data.edit_tree
-            
-            if hasattr(tree,"run_cache"):
-                run_cache=tree.run_cache
-                try:
-                    data=run_cache["outputs"][node.name][self.identifier]
-                    if data!=None:
-                        return text + " ("+str(data) + ")"
-                except:
-                    pass
-            
-            return text
-        
-        if self.is_output:
-            layout.label(text=doText())
-        elif self.is_linked:
-            layout.label(text=text)
-        else:
-            layout.prop(self, "value", text=text)
-
-    # Socket color
+    def drawProp(self, layout, text):
+        layout.prop(self, "value", text=text)
+    
     def draw_color(self, context, node):
         return (161/256, 161/256, 161/256, 1)
     

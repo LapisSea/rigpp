@@ -12,12 +12,6 @@ class NodeSocketConstraint(BoneNodeSocket):
     bl_idname = os.path.basename(__file__)[:-3]
     bl_label = 'Controllers Node Socket'
     
-    def getValue(self):
-        return None
-    
-    def draw(self, context, layout, node, text):
-        layout.label(text=text)
-
     def getCastExplicit(self,target):
         if target.bl_idname==self.bl_idname+"List":
             return "MakeList"
