@@ -379,6 +379,10 @@ def addAllFrom(path, classes):
 from .nodes.armature.DuplicateArmature import DuplicateArmature
 
 classes = []
+
+from .socket_generator import generated_classes
+classes+=generated_classes
+
 addAllFrom("sockets.types", classes)
 addAllFrom("sockets", classes)
 addAllFrom("nodes", classes)
