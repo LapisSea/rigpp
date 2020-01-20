@@ -28,6 +28,10 @@ for f in listdir(mypath):
     if f.endswith(".py") and isfile(join(mypath, f)):
         addType(f[:-3])
 
+from ...socket_generator import generated_classes
+for c in generated_classes:
+    addType(c.bl_idname)
+
 class SocketReference(PropertyGroup):
     sockType: EnumProperty(name="Type", items=types,update=updateTrees)
     name: StringProperty(name="value", update=updateTrees)

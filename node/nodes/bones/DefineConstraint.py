@@ -30,9 +30,8 @@ class DefineConstraint(BoneNode):
         for name,typ in self.getAttribs().items():
             if len(self.inputs)<=i:
                 self.inputs.new('NodeSocketAny', name)
-                
+            
             self.setIOType(self.inputs,i, typ)
-            print(name,typ)
             i+=1
             
         while len(self.inputs)>i:
@@ -66,10 +65,19 @@ class DefineConstraint(BoneNode):
     def execute(self,context, socket,tree):
         class ConstraintDef:
             
-            def __init__(self,name): 
+            def __init__(self,name,data): 
                 self.name=name
+                self.data=data
             
-            def applyAttributes(self, bone):
-                pass
+            def applyAttributes(self, constraint):
+                for key,value in self.data.items():
+                    try:
+                        setattr(constraint, key, value)
+                    except:
+                        pass
         
-        return ConstraintDef(self.attr)
+        data={}
+        for i,inp in enumerate(self.inputs):
+            data[inp.name]=execSocket(inp, context, data)
+        
+        return ConstraintDef(self.attr,data)
